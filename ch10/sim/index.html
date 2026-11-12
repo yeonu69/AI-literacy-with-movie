@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>자율주행 체험실</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="10장 운전대 없는 자동차 · 자율주행 체험실. 코딩 없이 브라우저에서 해 보는 체험 시뮬레이터입니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 레이아웃: 연구 노트 한 권. 실험 세 개가 위에서 아래로 이어지고, 각 실험은 '조작판 + 펜 그림 + 읽는 법' 세 칸입니다. 종이 한 가지 모습만 씁니다. */
+:root{
+  --paper:#FBFAF6; --paper-2:#F3F1EA; --ink:#23262E; --ink-soft:#5B5F6B; --line:#C9C6BB;
+  --blue:#2F55A4; --violet:#5D6FB3; --lav:#ECEFF9;
+  --teal:#1E6E6E; --teal-bg:#E3F0F0; --amber:#9A5B12; --amber-bg:#FFF3DD;
+  --alarm:#C2412D; --alarm-bg:#FBE6E1; --ok:#2E7D4F;
+  --f-hand:"Gaegu","Nanum Pen Script","Gowun Dodum",cursive;
+  --f-body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --sketch:255px 12px 225px 14px / 14px 225px 12px 255px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.7;
+  background-image:linear-gradient(var(--paper-2) 1px,transparent 1px);background-size:100% 28px}
+.wrap{max-width:860px;margin:0 auto;padding-block:28px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--f-hand);font-weight:700;line-height:1.2;text-wrap:balance;margin:0}
+p{margin:0}
+.eyebrow{font-size:13px;letter-spacing:.06em;color:var(--violet);font-weight:700}
+header.top{display:flex;flex-direction:column;gap:14px}
+header.top h1{font-size:clamp(34px,6vw,50px);color:var(--blue)}
+header.top .lead{max-width:62ch;color:var(--ink-soft)}
+.film{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:16px 18px;display:flex;gap:16px;align-items:flex-start}
+.film svg{flex:0 0 56px}
+.film div{min-width:0}
+.film b{font-family:var(--f-hand);font-size:22px}
+.film p{font-size:15px;color:var(--ink-soft)}
+nav.jump{display:flex;flex-wrap:wrap;gap:8px}
+nav.jump a{font-family:var(--f-hand);font-size:19px;color:var(--ink);text-decoration:none;border:1.5px dashed var(--ink-soft);border-radius:999px;padding:2px 14px;background:var(--paper)}
+nav.jump a:hover,nav.jump a:focus-visible{border-style:solid;background:var(--lav)}
+section.exp{display:flex;flex-direction:column;gap:18px;scroll-margin-top:12px}
+.exp-head{display:flex;gap:14px;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:8px}
+.exp-head .no{font-family:var(--f-hand);font-size:44px;color:var(--violet);line-height:1}
+.exp-head h2{font-size:clamp(26px,4.4vw,34px)}
+.exp-head small{display:block;font-family:var(--f-body);font-size:13px;color:var(--ink-soft);font-weight:400}
+.q{font-size:17px;max-width:64ch}
+.panel{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:18px;display:flex;flex-direction:column;gap:16px}
+.controls{display:flex;flex-wrap:wrap;gap:18px 28px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ctl label,.ctl .lbl{font-size:14px;color:var(--ink-soft)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;cursor:pointer}
+.seg button,.btn{font-family:var(--f-hand);font-size:19px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);padding:2px 14px;border-radius:var(--sketch);line-height:1.4}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.btn:hover,.seg button:hover{background:var(--lav)}
+.seg button[aria-pressed="true"]:hover{background:var(--ink)}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn.primary:hover{background:#244585}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+input[type=range]{width:min(320px,100%);accent-color:var(--blue)}
+.val{font-family:var(--f-num);font-size:15px;color:var(--ink)}
+.check{display:flex;gap:8px;align-items:center;font-size:15px}
+.check input{width:18px;height:18px;accent-color:var(--blue)}
+.figure{overflow-x:auto}
+.figure svg{display:block;width:100%;height:auto;max-width:100%}
+.big{font-family:var(--f-hand);font-size:clamp(24px,4vw,30px);line-height:1.3}
+.big em{font-style:normal;color:var(--alarm);background:linear-gradient(transparent 60%,var(--alarm-bg) 60%)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{border-top:2px solid var(--ink);padding-top:6px}
+.stat span{display:block;font-size:13px;color:var(--ink-soft)}
+.stat b{font-family:var(--f-num);font-size:20px;font-variant-numeric:tabular-nums;font-weight:500}
+.stat.alarm b{color:var(--alarm)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;color:var(--ink-soft)}
+.legend i{display:inline-block;width:12px;height:12px;border:1.5px solid var(--ink);border-radius:50%;margin-right:6px;vertical-align:-1px}
+.box{border-radius:var(--sketch);padding:14px 16px;font-size:15px;max-width:none}
+.box b.t{display:block;font-family:var(--f-hand);font-size:20px;margin-bottom:2px}
+.box.teal{background:var(--teal-bg)} .box.teal b.t{color:var(--teal)}
+.box.amber{background:var(--amber-bg)} .box.amber b.t{color:var(--amber)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:640px){.two{grid-template-columns:minmax(0,1fr)}}
+table.cm{border-collapse:separate;border-spacing:6px;width:100%;font-size:14px}
+table.cm th{font-weight:400;color:var(--ink-soft);font-size:13px;text-align:center}
+table.cm td{border:2px solid var(--ink);border-radius:var(--sketch);text-align:center;padding:8px 4px;background:var(--paper)}
+table.cm td b{display:block;font-family:var(--f-num);font-size:24px;font-weight:500}
+table.cm td.tp{background:#E4F1E8} table.cm td.fp{background:var(--alarm-bg)} table.cm td.fn{background:var(--amber-bg)}
+.meter{display:flex;flex-direction:column;gap:10px}
+.meter .row{display:grid;grid-template-columns:5.5em minmax(0,1fr) 3.4em;gap:10px;align-items:center;font-size:14px}
+.meter .bar{height:14px;border:1.5px solid var(--ink);border-radius:8px;background:var(--paper);overflow:hidden}
+.meter .bar i{display:block;height:100%;background:var(--blue);transition:width .25s}
+.meter .num{font-family:var(--f-num);text-align:right;font-variant-numeric:tabular-nums}
+.missions{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.mission{border:2px dashed var(--ink-soft);border-radius:var(--sketch);padding:12px 14px;font-size:15px;background:var(--paper)}
+.mission.done{border-style:solid;border-color:var(--ok);background:#EEF6F0}
+.mission b{font-family:var(--f-hand);font-size:20px;display:block}
+.mission .st{font-size:13px;color:var(--ink-soft)}
+.mission.done .st{color:var(--ok);font-weight:700}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.log{font-family:var(--f-num);font-size:13px;line-height:1.6;max-height:180px;overflow:auto;background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--ink-soft)}
+.log div b{color:var(--ink);font-weight:500}
+.reveal{display:flex;flex-direction:column;gap:6px}
+footer{border-top:2px solid var(--ink);padding-top:14px;font-size:14px;color:var(--ink-soft);display:flex;flex-direction:column;gap:8px}
+footer a{color:var(--blue)}
+.links{display:flex;flex-wrap:wrap;gap:8px 18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+canvas.pix{display:block;image-rendering:pixelated;border:2px solid var(--ink);border-radius:6px;background:#fff;max-width:100%;height:auto;touch-action:none}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.row>*{min-width:0}
+.cap{font-size:13px;color:var(--ink-soft)}
+.mono{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+textarea,input[type=text]{font:inherit;font-size:16px;border:2px solid var(--ink);border-radius:8px;padding:8px 10px;background:var(--paper);color:var(--ink);width:100%}
+select{font:inherit;font-size:15px;border:2px solid var(--ink);border-radius:8px;padding:4px 8px;background:var(--paper);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--f-num);font-size:14px;border:1.5px solid var(--ink);border-radius:6px;padding:2px 8px;background:var(--paper)}
+.tag{display:inline-block;font-size:12px;border-radius:999px;padding:0 8px;border:1.5px solid currentColor}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="2.2"/></filter>
+    <symbol id="person" viewBox="0 0 20 30"><circle cx="10" cy="6.5" r="4.6"/><path d="M2.5 29 C2.5 18 5 13.5 10 13.5 S17.5 18 17.5 29 Z"/></symbol>
+  </defs>
+</svg>
+<div class="wrap">
+<header class="top">
+  <p class="eyebrow">영화관으로 간 AI 리터러시 · 10장 운전대 없는 자동차 · 체험실</p>
+  <h1>자율주행차의 눈과 머리</h1>
+  <p class="lead">코드는 없습니다. 날씨를 고르고 칸을 눌러 보기만 하면 됩니다. 카메라, 레이더, 라이다가 날씨마다 어떻게 다른지, 자율주행차가 길을 어떻게 고르는지 봅니다.</p>
+  <div class="film">
+    <svg viewBox="0 0 56 56" aria-hidden="true" style="filter:url(#rough)"><rect x="4" y="10" width="48" height="36" rx="3" fill="none" stroke="#23262E" stroke-width="2.4"/><g fill="#23262E"><rect x="8" y="14" width="5" height="4"/><rect x="8" y="24" width="5" height="4"/><rect x="8" y="34" width="5" height="4"/><rect x="43" y="14" width="5" height="4"/><rect x="43" y="24" width="5" height="4"/><rect x="43" y="34" width="5" height="4"/></g><circle cx="28" cy="28" r="7" fill="none" stroke="#C2412D" stroke-width="2.4"/><circle cx="28" cy="28" r="2.2" fill="#C2412D"/></svg>
+    <div>
+      <b>「아이, 로봇」(2004)</b>
+      <p>2035년 시카고의 고속도로에서는 차가 스스로 달립니다. 운전자가 손을 놓아도 차는 차선을 지키고 속도를 맞춥니다. 그런데 형사 스푸너는 굳이 운전대를 잡습니다. 기계에게 운전을 맡기는 일은 어디까지 왔을까요?</p>
+    </div>
+  </div>
+  <nav class="jump" aria-label="실험 바로 가기"><a href="#sensors">실험 1 · 날씨와 세 개의 눈</a><a href="#route">실험 2 · 길 찾기 경주</a></nav>
+</header>
+<section class="exp" id="sensors">
+  <div class="exp-head"><span class="no">1</span><h2>날씨와 세 개의 눈<small>책 10장 3-3, 3-4절 · 카메라, 레이더, 라이다, 센서 융합</small></h2></div>
+  <p class="q">자율주행차는 세 가지 눈을 씁니다. 날씨를 바꾸고 센서를 하나씩 꺼 보십시오. 차가 앞의 보행자, 신호등 색, 앞차 속도를 제대로 아는지 표가 바뀝니다.</p>
+  <div class="panel">
+    <div class="controls">
+      <div class="ctl"><span class="lbl" id="wLbl">날씨</span><div class="seg" role="group" aria-labelledby="wLbl" id="wSeg"><button type="button" data-v="0" aria-pressed="true">맑은 낮</button><button type="button" data-v="1">밤</button><button type="button" data-v="2">비·눈</button><button type="button" data-v="3">짙은 안개</button><button type="button" data-v="4">해를 마주봄(역광)</button></div></div>
+    </div>
+    <div class="controls">
+      <label class="check"><input type="checkbox" id="sCam" checked>카메라</label>
+      <label class="check"><input type="checkbox" id="sRad" checked>레이더</label>
+      <label class="check"><input type="checkbox" id="sLid" checked>라이다</label>
+    </div>
+    <div class="figure" aria-hidden="true"><svg id="road" viewBox="0 0 640 200"></svg></div>
+    <div class="figure"><table class="cm" id="senseTbl" style="min-width:480px"></table></div>
+    <p class="big" id="senseHead"></p>
+  </div>
+  <div class="box teal"><b class="t">읽는 법</b>○는 잘 앎, △는 흐리게 앎, ✕는 모름입니다. 카메라만 색과 글자를 읽고, 레이더는 날씨에 강하고 속도를 바로 알고, 라이다는 거리를 정확히 잽니다. 서로의 약점을 메우려고 여러 눈의 정보를 합치는 일이 <b>센서 융합</b>입니다. 표의 값은 책 [그림 10-5]의 설명을 단순하게 옮긴 것입니다.</div>
+</section>
+
+<section class="exp" id="route">
+  <div class="exp-head"><span class="no">2</span><h2>길 찾기 경주<small>책 10장 3-6절 · 경로 계획</small></h2></div>
+  <p class="q">차가 왼쪽 아래에서 오른쪽 위 목적지까지 가려 합니다. 칸을 눌러 공사 구간을 놓아 보십시오. 그다음 두 가지 방법으로 길을 찾게 해 보십시오. 하나는 사방으로 고르게 퍼져 찾고, 하나(A*)는 목적지 쪽을 먼저 봅니다.</p>
+  <div class="panel">
+    <div class="btnrow"><button type="button" class="btn" id="bfs">사방으로 퍼져 찾기</button><button type="button" class="btn primary" id="astar">A*로 찾기</button><button type="button" class="btn" id="maze">공사 구간 예시</button><button type="button" class="btn" id="clearG">모두 지우기</button></div>
+    <div class="figure"><svg id="grid" viewBox="0 0 640 400" style="cursor:pointer;touch-action:none" aria-label="길 찾기 격자"></svg></div>
+    <div class="stats" id="routeStats"></div>
+  </div>
+  <div class="box amber"><b class="t">생각해 볼 것</b>두 방법 모두 가장 짧은 길을 찾습니다. 그런데 A*는 '목적지까지 남은 거리'를 어림해서 그쪽을 먼저 살피므로, 훨씬 적은 칸만 보고도 답을 냅니다. 내비게이션과 자율주행차는 이런 계산을 1초에도 여러 번 다시 합니다. 길 위에 사람이나 차가 나타나면 계획을 바꿔야 하기 때문입니다.</div>
+</section>
+
+<footer>
+  <p>이 체험실의 숫자는 원리를 보여 주려고 만든 가상의 값입니다.</p>
+  <div class="links"><a href="https://yeonu69.github.io/AI-literacy-with-movie/ch10/lab/">10장 코랩 실습 열기</a><a href="https://yeonu69.github.io/AI-literacy-with-movie/ch10/t1/">「아이, 로봇」 예고편</a><a href="https://yeonu69.github.io/AI-literacy-with-movie/sim/">다른 장 체험실 보기</a></div>
+  <p>「영화관으로 간 AI 리터러시」 웹부록 · AInsight@Movie</p>
+</footer>
+</div>
+<script>
+const NS="http://www.w3.org/2000/svg";
+const INK="#23262E", ALARM="#C2412D", GREY="#E6E3DA", SOFT="#5B5F6B", BLUE="#2F55A4", TEAL="#1E6E6E", AMBER="#9A5B12", OK="#2E7D4F", PAPER="#FBFAF6", VIOLET="#5D6FB3", LINE="#C9C6BB";
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n).toLocaleString("ko-KR");
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function txt(parent,x,y,s,attrs){const t=el("text",Object.assign({x,y,"font-family":"Gaegu, cursive","font-size":18,fill:INK},attrs||{}),parent);t.textContent=s;return t;}
+function sk(parent){return el("g",{style:"filter:url(#rough)"},parent);}
+function rng(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+function seg(id,cb){const g=$(id);g.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{g.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));cb(b.dataset.v,b);}));}
+function stats(id,items){$(id).innerHTML=items.map(([l,v,c])=>`<div class="stat ${c||""}"><span>${l}</span><b>${v}</b></div>`).join("");}
+
+(function(){
+/* 실험 1 */
+const COND=["맑은 낮","밤","비·눈","짙은 안개","역광"];
+const TASKS=["앞의 보행자","신호등 색","앞차 속도"];
+// 2=○ 1=△ 0=✕  [센서][과제][날씨]
+const CAP={cam:[[2,1,1,0,0],[2,2,1,1,0],[1,1,1,0,0]],rad:[[1,1,1,1,1],[0,0,0,0,0],[2,2,2,2,2]],lid:[[2,2,1,0,2],[0,0,0,0,0],[1,1,1,0,1]]};
+const NAME={cam:"카메라",rad:"레이더",lid:"라이다"},SYM=["✕","△","○"],BG=["#FBE6E1","#FFF3DD","#E4F1E8"];
+let w=0;
+function draw(){const on={cam:$("sCam").checked,rad:$("sRad").checked,lid:$("sLid").checked};
+  let h=`<tr><th></th>${TASKS.map(t=>`<th>${t}</th>`).join("")}</tr>`;const fused=[0,0,0];
+  Object.keys(CAP).forEach(k=>{h+=`<tr><th>${NAME[k]}${on[k]?"":" (꺼짐)"}</th>`;TASKS.forEach((_,i)=>{const v=on[k]?CAP[k][i][w]:null;if(v!=null)fused[i]=Math.max(fused[i],v);h+=v==null?`<td style="opacity:.35">—</td>`:`<td style="background:${BG[v]}"><b>${SYM[v]}</b></td>`;});h+="</tr>";});
+  h+=`<tr><th><b>합친 결과</b></th>${fused.map(v=>`<td style="background:${BG[v]};border-width:3px"><b>${SYM[v]}</b></td>`).join("")}</tr>`;$("senseTbl").innerHTML=h;
+  const miss=TASKS.filter((_,i)=>fused[i]===0);
+  $("senseHead").innerHTML=miss.length?`${COND[w]}에는 <em>${miss.join(", ")}</em>을(를) 알 수 없습니다. 이대로는 위험합니다.`:fused.every(v=>v===2)?`${COND[w]}에는 세 가지를 모두 또렷하게 압니다.`:`${COND[w]}에도 모두 알긴 하지만 흐린 칸(△)이 있습니다. 속도를 줄이는 것이 안전합니다.`;
+  // 장면
+  const s=$("road");s.innerHTML="";const sky=["#EEF4FB","#2B3245","#DDE2E8","#E7E7E2","#FFF0C8"][w];
+  el("rect",{x:0,y:0,width:640,height:200,fill:sky},s);el("rect",{x:0,y:120,width:640,height:80,fill:w===1?"#3B4256":"#D9D6CC"},s);
+  for(let i=0;i<8;i++)el("rect",{x:20+i*80,y:157,width:40,height:5,fill:"#fff",opacity:.8},s);
+  if(w===4)el("circle",{cx:600,cy:50,r:30,fill:"#FFD34D"},s);
+  const g=sk(s);
+  // 차
+  el("rect",{x:30,y:128,width:90,height:34,rx:10,fill:BLUE,stroke:INK,"stroke-width":2},g);el("circle",{cx:52,cy:164,r:9,fill:INK},g);el("circle",{cx:100,cy:164,r:9,fill:INK},g);
+  // 센서 부채꼴
+  const cones=[["cam","#F2B233",-.18,.18,on.cam?(w===3?250:w===4?150:440):0],["rad",VIOLET,-.08,.08,on.rad?520:0],["lid",OK,-.3,.3,on.lid?(w===3?160:w===2?320:420):0]];
+  cones.forEach(([k,c,a0,a1,len])=>{if(!len)return;el("path",{d:`M120 140 L${120+len*Math.cos(a0)} ${140+len*Math.sin(a0)} L${120+len*Math.cos(a1)} ${140+len*Math.sin(a1)} Z`,fill:c,opacity:.18,stroke:c,"stroke-width":1.5},s);});
+  el("use",{href:"#person",x:380,y:112,width:22,height:34,fill:"#fff",stroke:w===1?"#fff":INK,"stroke-width":1.5},g);
+  el("rect",{x:520,y:40,width:18,height:46,rx:4,fill:INK},g);el("circle",{cx:529,cy:52,r:5,fill:"#C2412D"},g);el("circle",{cx:529,cy:74,r:5,fill:"#555"},g);el("line",{x1:529,y1:86,x2:529,y2:130,stroke:INK,"stroke-width":3},g);
+  el("rect",{x:460,y:132,width:80,height:28,rx:8,fill:"#9A968C",stroke:INK,"stroke-width":2},g);
+  if(w===2)for(let i=0;i<60;i++){const x=(i*53)%640,y=(i*37)%190;el("line",{x1:x,y1:y,x2:x-4,y2:y+12,stroke:"#7A8899","stroke-width":1.2},s);}
+  if(w===3)el("rect",{x:0,y:0,width:640,height:200,fill:"#F4F4F0",opacity:.55},s);
+  txt(s,10,22,COND[w],{"font-size":20,fill:w===1?"#fff":INK});}
+seg("wSeg",v=>{w=+v;draw();});["sCam","sRad","sLid"].forEach(id=>$(id).addEventListener("change",draw));draw();
+
+/* 실험 2 */
+const NX=16,NY=10,C=40;const S=[0,9],G=[15,0];let wall=new Set(),seen=new Map(),path=[],timer=null,mode="";
+function key(x,y){return x+","+y;}
+function example(){wall=new Set();for(let y=0;y<8;y++)wall.add(key(5,y));for(let y=2;y<10;y++)wall.add(key(10,y));for(let x=6;x<9;x++)wall.add(key(x,5));seen=new Map();path=[];drawG();}
+function drawG(){const s=$("grid");s.innerHTML="";
+  for(let x=0;x<NX;x++)for(let y=0;y<NY;y++){const k=key(x,y);const v=seen.get(k);el("rect",{x:x*C,y:y*C,width:C,height:C,fill:wall.has(k)?"#5B5F6B":v!=null?(mode==="astar"?"#E1E8F5":"#F7E3DE"):"#fff",stroke:"#E6E3DA"},s);}
+  if(path.length){let d="";path.forEach(([x,y],i)=>d+=(i?"L":"M")+(x*C+C/2)+" "+(y*C+C/2));el("path",{d,fill:"none",stroke:OK,"stroke-width":6,"stroke-linecap":"round","stroke-linejoin":"round"},s);}
+  const g=sk(s);el("rect",{x:S[0]*C+6,y:S[1]*C+10,width:28,height:20,rx:5,fill:BLUE,stroke:INK,"stroke-width":1.5},g);
+  txt(s,G[0]*C+C/2,G[1]*C+C/2+8,"🏁",{"text-anchor":"middle","font-size":22});
+  const done=path.length>0;stats("routeStats",[["찾은 방법",mode==="astar"?"A*":mode==="bfs"?"사방으로 퍼져 찾기":"—"],["살펴본 칸",seen.size?seen.size+"칸":"—",mode==="bfs"?"alarm":""],["찾은 길의 길이",done?(path.length-1)+"칸":(mode&&!timer?"길이 없습니다":"—")]]);}
+function search(kind){if(timer)clearInterval(timer);mode=kind;seen=new Map();path=[];
+  const h=(x,y)=>Math.abs(x-G[0])+Math.abs(y-G[1]);const open=[[S[0],S[1],0,kind==="astar"?h(S[0],S[1]):0]];const g={},prev={};g[key(...S)]=0;const order=[];
+  while(open.length){open.sort((a,b)=>a[3]-b[3]||b[2]-a[2]);const [x,y,gc]=open.shift();const k=key(x,y);if(order.includes(k))continue;order.push(k);if(x===G[0]&&y===G[1])break;
+    [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{const nx=x+dx,ny=y+dy,nk=key(nx,ny);if(nx<0||ny<0||nx>=NX||ny>=NY||wall.has(nk))return;const ng=gc+1;if(g[nk]==null||ng<g[nk]){g[nk]=ng;prev[nk]=k;open.push([nx,ny,ng,ng+(kind==="astar"?h(nx,ny):0)]);}});}
+  let i=0;timer=setInterval(()=>{for(let j=0;j<3&&i<order.length;j++,i++)seen.set(order[i],i);
+    if(i>=order.length){clearInterval(timer);timer=null;const gk=key(...G);if(prev[gk]||gk===key(...S)){let k=gk;const p=[];while(k){p.unshift(k.split(",").map(Number));k=prev[k];}path=p;}}drawG();},30);}
+$("bfs").addEventListener("click",()=>search("bfs"));$("astar").addEventListener("click",()=>search("astar"));
+$("maze").addEventListener("click",example);$("clearG").addEventListener("click",()=>{wall=new Set();seen=new Map();path=[];mode="";drawG();});
+$("grid").addEventListener("click",e=>{const r=$("grid").getBoundingClientRect();const x=Math.floor((e.clientX-r.left)/r.width*NX),y=Math.floor((e.clientY-r.top)/r.height*NY);const k=key(x,y);if(k===key(...S)||k===key(...G))return;wall.has(k)?wall.delete(k):wall.add(k);seen=new Map();path=[];mode="";drawG();});
+example();
+})();
+
+</script>
+</body>
+</html>

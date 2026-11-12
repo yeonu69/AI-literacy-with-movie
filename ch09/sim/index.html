@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>피지컬 AI 체험실</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="9장 피지컬 AI · 피지컬 AI 체험실. 코딩 없이 브라우저에서 해 보는 체험 시뮬레이터입니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 레이아웃: 연구 노트 한 권. 실험 세 개가 위에서 아래로 이어지고, 각 실험은 '조작판 + 펜 그림 + 읽는 법' 세 칸입니다. 종이 한 가지 모습만 씁니다. */
+:root{
+  --paper:#FBFAF6; --paper-2:#F3F1EA; --ink:#23262E; --ink-soft:#5B5F6B; --line:#C9C6BB;
+  --blue:#2F55A4; --violet:#5D6FB3; --lav:#ECEFF9;
+  --teal:#1E6E6E; --teal-bg:#E3F0F0; --amber:#9A5B12; --amber-bg:#FFF3DD;
+  --alarm:#C2412D; --alarm-bg:#FBE6E1; --ok:#2E7D4F;
+  --f-hand:"Gaegu","Nanum Pen Script","Gowun Dodum",cursive;
+  --f-body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --sketch:255px 12px 225px 14px / 14px 225px 12px 255px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.7;
+  background-image:linear-gradient(var(--paper-2) 1px,transparent 1px);background-size:100% 28px}
+.wrap{max-width:860px;margin:0 auto;padding-block:28px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--f-hand);font-weight:700;line-height:1.2;text-wrap:balance;margin:0}
+p{margin:0}
+.eyebrow{font-size:13px;letter-spacing:.06em;color:var(--violet);font-weight:700}
+header.top{display:flex;flex-direction:column;gap:14px}
+header.top h1{font-size:clamp(34px,6vw,50px);color:var(--blue)}
+header.top .lead{max-width:62ch;color:var(--ink-soft)}
+.film{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:16px 18px;display:flex;gap:16px;align-items:flex-start}
+.film svg{flex:0 0 56px}
+.film div{min-width:0}
+.film b{font-family:var(--f-hand);font-size:22px}
+.film p{font-size:15px;color:var(--ink-soft)}
+nav.jump{display:flex;flex-wrap:wrap;gap:8px}
+nav.jump a{font-family:var(--f-hand);font-size:19px;color:var(--ink);text-decoration:none;border:1.5px dashed var(--ink-soft);border-radius:999px;padding:2px 14px;background:var(--paper)}
+nav.jump a:hover,nav.jump a:focus-visible{border-style:solid;background:var(--lav)}
+section.exp{display:flex;flex-direction:column;gap:18px;scroll-margin-top:12px}
+.exp-head{display:flex;gap:14px;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:8px}
+.exp-head .no{font-family:var(--f-hand);font-size:44px;color:var(--violet);line-height:1}
+.exp-head h2{font-size:clamp(26px,4.4vw,34px)}
+.exp-head small{display:block;font-family:var(--f-body);font-size:13px;color:var(--ink-soft);font-weight:400}
+.q{font-size:17px;max-width:64ch}
+.panel{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:18px;display:flex;flex-direction:column;gap:16px}
+.controls{display:flex;flex-wrap:wrap;gap:18px 28px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ctl label,.ctl .lbl{font-size:14px;color:var(--ink-soft)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;cursor:pointer}
+.seg button,.btn{font-family:var(--f-hand);font-size:19px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);padding:2px 14px;border-radius:var(--sketch);line-height:1.4}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.btn:hover,.seg button:hover{background:var(--lav)}
+.seg button[aria-pressed="true"]:hover{background:var(--ink)}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn.primary:hover{background:#244585}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+input[type=range]{width:min(320px,100%);accent-color:var(--blue)}
+.val{font-family:var(--f-num);font-size:15px;color:var(--ink)}
+.check{display:flex;gap:8px;align-items:center;font-size:15px}
+.check input{width:18px;height:18px;accent-color:var(--blue)}
+.figure{overflow-x:auto}
+.figure svg{display:block;width:100%;height:auto;max-width:100%}
+.big{font-family:var(--f-hand);font-size:clamp(24px,4vw,30px);line-height:1.3}
+.big em{font-style:normal;color:var(--alarm);background:linear-gradient(transparent 60%,var(--alarm-bg) 60%)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{border-top:2px solid var(--ink);padding-top:6px}
+.stat span{display:block;font-size:13px;color:var(--ink-soft)}
+.stat b{font-family:var(--f-num);font-size:20px;font-variant-numeric:tabular-nums;font-weight:500}
+.stat.alarm b{color:var(--alarm)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;color:var(--ink-soft)}
+.legend i{display:inline-block;width:12px;height:12px;border:1.5px solid var(--ink);border-radius:50%;margin-right:6px;vertical-align:-1px}
+.box{border-radius:var(--sketch);padding:14px 16px;font-size:15px;max-width:none}
+.box b.t{display:block;font-family:var(--f-hand);font-size:20px;margin-bottom:2px}
+.box.teal{background:var(--teal-bg)} .box.teal b.t{color:var(--teal)}
+.box.amber{background:var(--amber-bg)} .box.amber b.t{color:var(--amber)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:640px){.two{grid-template-columns:minmax(0,1fr)}}
+table.cm{border-collapse:separate;border-spacing:6px;width:100%;font-size:14px}
+table.cm th{font-weight:400;color:var(--ink-soft);font-size:13px;text-align:center}
+table.cm td{border:2px solid var(--ink);border-radius:var(--sketch);text-align:center;padding:8px 4px;background:var(--paper)}
+table.cm td b{display:block;font-family:var(--f-num);font-size:24px;font-weight:500}
+table.cm td.tp{background:#E4F1E8} table.cm td.fp{background:var(--alarm-bg)} table.cm td.fn{background:var(--amber-bg)}
+.meter{display:flex;flex-direction:column;gap:10px}
+.meter .row{display:grid;grid-template-columns:5.5em minmax(0,1fr) 3.4em;gap:10px;align-items:center;font-size:14px}
+.meter .bar{height:14px;border:1.5px solid var(--ink);border-radius:8px;background:var(--paper);overflow:hidden}
+.meter .bar i{display:block;height:100%;background:var(--blue);transition:width .25s}
+.meter .num{font-family:var(--f-num);text-align:right;font-variant-numeric:tabular-nums}
+.missions{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.mission{border:2px dashed var(--ink-soft);border-radius:var(--sketch);padding:12px 14px;font-size:15px;background:var(--paper)}
+.mission.done{border-style:solid;border-color:var(--ok);background:#EEF6F0}
+.mission b{font-family:var(--f-hand);font-size:20px;display:block}
+.mission .st{font-size:13px;color:var(--ink-soft)}
+.mission.done .st{color:var(--ok);font-weight:700}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.log{font-family:var(--f-num);font-size:13px;line-height:1.6;max-height:180px;overflow:auto;background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--ink-soft)}
+.log div b{color:var(--ink);font-weight:500}
+.reveal{display:flex;flex-direction:column;gap:6px}
+footer{border-top:2px solid var(--ink);padding-top:14px;font-size:14px;color:var(--ink-soft);display:flex;flex-direction:column;gap:8px}
+footer a{color:var(--blue)}
+.links{display:flex;flex-wrap:wrap;gap:8px 18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+canvas.pix{display:block;image-rendering:pixelated;border:2px solid var(--ink);border-radius:6px;background:#fff;max-width:100%;height:auto;touch-action:none}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.row>*{min-width:0}
+.cap{font-size:13px;color:var(--ink-soft)}
+.mono{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+textarea,input[type=text]{font:inherit;font-size:16px;border:2px solid var(--ink);border-radius:8px;padding:8px 10px;background:var(--paper);color:var(--ink);width:100%}
+select{font:inherit;font-size:15px;border:2px solid var(--ink);border-radius:8px;padding:4px 8px;background:var(--paper);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--f-num);font-size:14px;border:1.5px solid var(--ink);border-radius:6px;padding:2px 8px;background:var(--paper)}
+.tag{display:inline-block;font-size:12px;border-radius:999px;padding:0 8px;border:1.5px solid currentColor}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="2.2"/></filter>
+    <symbol id="person" viewBox="0 0 20 30"><circle cx="10" cy="6.5" r="4.6"/><path d="M2.5 29 C2.5 18 5 13.5 10 13.5 S17.5 18 17.5 29 Z"/></symbol>
+  </defs>
+</svg>
+<div class="wrap">
+<header class="top">
+  <p class="eyebrow">영화관으로 간 AI 리터러시 · 9장 피지컬 AI · 체험실</p>
+  <h1>로봇에게 몸을 쓰는 법 가르치기</h1>
+  <p class="lead">코드는 없습니다. 막대를 밀고 버튼을 눌러 보기만 하면 됩니다. 로봇 팔이 시행착오로 배우는 모습과, 감지-판단-행동 순환이 왜 빨라야 하는지 겪어 봅니다.</p>
+  <div class="film">
+    <svg viewBox="0 0 56 56" aria-hidden="true" style="filter:url(#rough)"><rect x="4" y="10" width="48" height="36" rx="3" fill="none" stroke="#23262E" stroke-width="2.4"/><g fill="#23262E"><rect x="8" y="14" width="5" height="4"/><rect x="8" y="24" width="5" height="4"/><rect x="8" y="34" width="5" height="4"/><rect x="43" y="14" width="5" height="4"/><rect x="43" y="24" width="5" height="4"/><rect x="43" y="34" width="5" height="4"/></g><circle cx="28" cy="28" r="7" fill="none" stroke="#C2412D" stroke-width="2.4"/><circle cx="28" cy="28" r="2.2" fill="#C2412D"/></svg>
+    <div>
+      <b>「채피」(2015)</b>
+      <p>요하네스버그의 경찰 로봇 하나가 새 프로그램을 받고 깨어납니다. 갓난아기처럼 말도 걸음도 모르던 '채피'는 사람들의 몸짓을 따라 하며 놀라운 속도로 배웁니다. 몸을 가진 AI는 무엇을, 어떻게 배워야 할까요?</p>
+    </div>
+  </div>
+  <nav class="jump" aria-label="실험 바로 가기"><a href="#arm">실험 1 · 로봇 팔로 컵 잡기</a><a href="#loop">실험 2 · 감지-판단-행동 순환</a></nav>
+</header>
+<section class="exp" id="arm">
+  <div class="exp-head"><span class="no">1</span><h2>로봇 팔로 컵 잡기<small>책 9장 3-2, 3-3절 · 모라벡의 역설, 로봇을 가르치는 방법</small></h2></div>
+  <p class="q">사람에게 컵 잡기는 아무것도 아닙니다. 그런데 로봇은 어깨와 팔꿈치를 몇 도씩 돌릴지 계산해야 합니다. 먼저 막대 두 개로 직접 손끝을 컵에 대 보십시오. 그다음 로봇이 시행착오로 배우게 해 보십시오.</p>
+  <div class="panel">
+    <div class="controls">
+      <div class="ctl"><label for="a1">어깨 각도 <span class="val" id="a1Val"></span></label><input type="range" id="a1" min="0" max="180" value="60"></div>
+      <div class="ctl"><label for="a2">팔꿈치 각도 <span class="val" id="a2Val"></span></label><input type="range" id="a2" min="-150" max="150" value="40"></div>
+    </div>
+    <div class="btnrow"><button type="button" class="btn primary" id="learn">로봇이 시행착오로 배우기</button><button type="button" class="btn" id="moveCup">컵 옮기기</button></div>
+    <div class="figure"><svg id="armSvg" viewBox="0 0 400 260" style="max-width:520px" aria-label="로봇 팔"></svg></div>
+    <p class="big" id="armHead"></p>
+  </div>
+  <div class="box teal"><b class="t">읽는 법</b>로봇은 조금 움직여 보고, 컵에 가까워지면 그 자세를 기억하고, 멀어지면 버립니다. 여러 번 만에 컵에 닿지만, 컵을 옮기면 처음부터 다시 해야 합니다. 체스는 컴퓨터에게 쉽고 컵 잡기는 어려운 이 뒤집힌 현상이 <b>모라벡의 역설</b>입니다. 실제 로봇은 이런 시행착오를 시뮬레이션 속에서 수백만 번 겪고 나옵니다.</div>
+</section>
+
+<section class="exp" id="loop">
+  <div class="exp-head"><span class="no">2</span><h2>감지-판단-행동 순환<small>책 9장 3-1절 · 로봇의 기본 순환</small></h2></div>
+  <p class="q">떨어지는 공을 받는 로봇 손입니다. 로봇은 공을 보고(감지), 어디로 갈지 정하고(판단), 손을 움직입니다(행동). 이 순환을 1초에 몇 번 돌리는지, 눈(센서)이 얼마나 흐린지 바꿔 보십시오.</p>
+  <div class="panel">
+    <div class="controls">
+      <div class="ctl"><span class="lbl" id="hzLbl">1초에 몇 번 보고 판단할까요</span><div class="seg" role="group" aria-labelledby="hzLbl" id="hzSeg"><button type="button" data-v="1">1번</button><button type="button" data-v="3">3번</button><button type="button" data-v="10" aria-pressed="true">10번</button><button type="button" data-v="30">30번</button></div></div>
+      <div class="ctl"><label for="noise">센서 흐림 <span class="val" id="noiseVal"></span></label><input type="range" id="noise" min="0" max="60" value="5"></div>
+    </div>
+    <div class="btnrow"><button type="button" class="btn" id="drop1">공 하나 떨어뜨리기</button><button type="button" class="btn primary" id="drop20">공 20개 받아 보기</button></div>
+    <canvas id="catchCv" width="600" height="300" style="width:100%;max-width:600px;border:2px solid #23262E;border-radius:8px;background:#fff;display:block"></canvas>
+    <p class="big" id="catchHead"></p>
+  </div>
+  <div class="box amber"><b class="t">생각해 볼 것</b>순환이 느리면 로봇은 이미 지나간 공의 위치를 보고 움직입니다. 센서가 흐리면 엉뚱한 곳으로 갑니다. 걷는 로봇은 균형을 잡으려고 1초에 수백 번 이상 이 순환을 돌립니다. 몸을 가진 AI에게는 똑똑함만큼 '빠르고 정확한 반응'이 중요합니다.</div>
+</section>
+
+<footer>
+  <p>이 체험실의 숫자는 원리를 보여 주려고 만든 가상의 값입니다.</p>
+  <div class="links"><a href="https://yeonu69.github.io/AI-literacy-with-movie/ch09/lab/">9장 코랩 실습 열기</a><a href="https://yeonu69.github.io/AI-literacy-with-movie/ch09/t1/">「채피」 예고편</a><a href="https://yeonu69.github.io/AI-literacy-with-movie/sim/">다른 장 체험실 보기</a></div>
+  <p>「영화관으로 간 AI 리터러시」 웹부록 · AInsight@Movie</p>
+</footer>
+</div>
+<script>
+const NS="http://www.w3.org/2000/svg";
+const INK="#23262E", ALARM="#C2412D", GREY="#E6E3DA", SOFT="#5B5F6B", BLUE="#2F55A4", TEAL="#1E6E6E", AMBER="#9A5B12", OK="#2E7D4F", PAPER="#FBFAF6", VIOLET="#5D6FB3", LINE="#C9C6BB";
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n).toLocaleString("ko-KR");
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function txt(parent,x,y,s,attrs){const t=el("text",Object.assign({x,y,"font-family":"Gaegu, cursive","font-size":18,fill:INK},attrs||{}),parent);t.textContent=s;return t;}
+function sk(parent){return el("g",{style:"filter:url(#rough)"},parent);}
+function rng(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+function seg(id,cb){const g=$(id);g.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{g.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));cb(b.dataset.v,b);}));}
+function stats(id,items){$(id).innerHTML=items.map(([l,v,c])=>`<div class="stat ${c||""}"><span>${l}</span><b>${v}</b></div>`).join("");}
+
+(function(){
+/* 실험 1: 2관절 팔 */
+const L1=110,L2=90,BX=200,BY=230;let cup,ghosts=[],tries=0,learning=null;const r=rng(4);
+function fk(a1,a2){const t1=a1*Math.PI/180,t2=(a1+a2)*Math.PI/180;const ex=BX+L1*Math.cos(t1),ey=BY-L1*Math.sin(t1);return{ex,ey,hx:ex+L2*Math.cos(t2),hy:ey-L2*Math.sin(t2)};}
+function newCup(){for(;;){const p=fk(20+r()*140,-120+r()*240);if(p.hy<190&&p.hx>30&&p.hx<370&&Math.hypot(p.hx-BX,p.hy-BY)>70){cup={x:p.hx,y:p.hy};break;}}ghosts=[];tries=0;}
+function dist(){const p=fk(+$("a1").value,+$("a2").value);return Math.hypot(p.hx-cup.x,p.hy-cup.y);}
+function draw(){const a1=+$("a1").value,a2=+$("a2").value;$("a1Val").textContent=a1+"°";$("a2Val").textContent=a2+"°";
+  const s=$("armSvg");s.innerHTML="";el("line",{x1:10,y1:BY+12,x2:390,y2:BY+12,stroke:INK,"stroke-width":2},s);
+  ghosts.slice(-25).forEach(([g1,g2])=>{const p=fk(g1,g2);el("path",{d:`M${BX} ${BY} L${p.ex} ${p.ey} L${p.hx} ${p.hy}`,fill:"none",stroke:LINE,"stroke-width":2,opacity:.6},s);});
+  const g=sk(s);el("path",{d:`M${cup.x-12} ${cup.y-14} L${cup.x+12} ${cup.y-14} L${cup.x+9} ${cup.y+12} L${cup.x-9} ${cup.y+12} Z`,fill:"#FFF3DD",stroke:INK,"stroke-width":2},g);
+  el("path",{d:`M${cup.x+12} ${cup.y-6} q10 4 0 12`,fill:"none",stroke:INK,"stroke-width":2},g);
+  const p=fk(a1,a2);el("rect",{x:BX-22,y:BY-6,width:44,height:20,rx:4,fill:"#ECEFF9",stroke:INK,"stroke-width":2},g);
+  el("line",{x1:BX,y1:BY,x2:p.ex,y2:p.ey,stroke:BLUE,"stroke-width":10,"stroke-linecap":"round"},g);el("line",{x1:p.ex,y1:p.ey,x2:p.hx,y2:p.hy,stroke:VIOLET,"stroke-width":8,"stroke-linecap":"round"},g);
+  el("circle",{cx:BX,cy:BY,r:7,fill:"#fff",stroke:INK,"stroke-width":2},g);el("circle",{cx:p.ex,cy:p.ey,r:6,fill:"#fff",stroke:INK,"stroke-width":2},g);
+  const d=Math.hypot(p.hx-cup.x,p.hy-cup.y);el("circle",{cx:p.hx,cy:p.hy,r:6,fill:d<8?OK:ALARM},g);
+  $("armHead").innerHTML=d<8?(tries?`로봇이 <em>${tries}번</em> 시도해서 컵에 닿았습니다.`:"손끝이 컵에 닿았습니다! 막대 두 개를 맞추기가 쉬웠습니까?"):(learning?`시도 ${tries}번째, 컵까지 ${Math.round(d)}만큼 남았습니다.`:`손끝에서 컵까지 ${Math.round(d)}만큼 떨어져 있습니다.`);}
+["a1","a2"].forEach(id=>$(id).addEventListener("input",()=>{tries=0;draw();}));
+$("moveCup").addEventListener("click",()=>{if(learning)clearInterval(learning);learning=null;newCup();draw();});
+$("learn").addEventListener("click",()=>{if(learning)clearInterval(learning);tries=0;ghosts=[];let step=40,stuck=0;
+  learning=setInterval(()=>{const a1=+$("a1").value,a2=+$("a2").value,d0=dist();const n1=Math.max(0,Math.min(180,a1+(r()-.5)*step)),n2=Math.max(-150,Math.min(150,a2+(r()-.5)*step));
+    tries++;ghosts.push([n1,n2]);const p=fk(n1,n2);const d1=Math.hypot(p.hx-cup.x,p.hy-cup.y);
+    if(d1<d0){$("a1").value=Math.round(n1);$("a2").value=Math.round(n2);stuck=0;}else{step=Math.max(3,step*0.97);if(++stuck>50){$("a1").value=Math.round(r()*180);$("a2").value=Math.round(-150+r()*300);step=40;stuck=0;}}
+    draw();if(dist()<8||tries>400){clearInterval(learning);learning=null;draw();}},60);});
+newCup();draw();
+
+/* 실험 2: 공 받기 */
+const cv=$("catchCv"),x=cv.getContext("2d");let hz=10,anim=null,results=[];
+seg("hzSeg",v=>{hz=+v;});$("noise").addEventListener("input",()=>$("noiseVal").textContent=$("noise").value);$("noiseVal").textContent=$("noise").value;
+function simBall(rr,draw,cb){const W=600,H=300;let bx=60+rr()*480,by=10,vx=(rr()-.5)*440,vy=40;let hand=300,sensed=bx,next=0,t=0;const dt=1/60,speed=200,noise=+$("noise").value;const trail=[];
+  function stepOnce(){t+=dt;vy+=200*dt;bx+=vx*dt;by+=vy*dt;if(bx<10||bx>590)vx=-vx;
+    if(t>=next){sensed=bx+gauss(rr)*noise;next+=1/hz;trail.push(sensed);}
+    const dx=sensed-hand;hand+=Math.max(-speed*dt,Math.min(speed*dt,dx));
+    if(by>=H-30){return{done:true,ok:Math.abs(bx-hand)<30,bx,hand};}return{done:false};}
+  if(!draw){for(;;){const r2=stepOnce();if(r2.done)return cb(r2);}}
+  function frame(){const r2=stepOnce();x.fillStyle="#fff";x.fillRect(0,0,W,H);
+    x.strokeStyle="#E6E3DA";x.beginPath();x.moveTo(0,H-20);x.lineTo(W,H-20);x.stroke();
+    x.fillStyle="rgba(194,65,45,.25)";trail.slice(-3).forEach(s=>{x.beginPath();x.arc(s,H-46,4,0,7);x.fill();});
+    x.fillStyle="#2F55A4";x.fillRect(hand-34,H-30,68,12);x.strokeStyle="#23262E";x.lineWidth=2;x.strokeRect(hand-34,H-30,68,12);
+    x.beginPath();x.fillStyle="#F2B233";x.arc(bx,by,10,0,7);x.fill();x.stroke();
+    x.fillStyle="#5B5F6B";x.font="15px 'Gowun Dodum', sans-serif";x.fillText("빨간 점: 로봇이 마지막으로 본 공의 위치",10,20);
+    if(r2.done){x.font="28px Gaegu, cursive";x.fillStyle=r2.ok?"#2E7D4F":"#C2412D";x.fillText(r2.ok?"잡았습니다!":"놓쳤습니다",230,150);cb(r2);return;}
+    anim=requestAnimationFrame(frame);}
+  frame();}
+$("drop1").addEventListener("click",()=>{if(anim)cancelAnimationFrame(anim);simBall(rng(Date.now()&0xffff),true,r2=>{$("catchHead").innerHTML=r2.ok?"공을 잡았습니다.":"공을 놓쳤습니다. 순환 속도나 센서 흐림을 바꿔 보십시오.";});});
+$("drop20").addEventListener("click",()=>{const rr=rng(77);let ok=0;for(let i=0;i<20;i++)simBall(rr,false,r2=>{if(r2.ok)ok++;});
+  $("catchHead").innerHTML=`1초에 ${hz}번 판단, 센서 흐림 ${$("noise").value}일 때 공 20개 중 <em>${ok}개</em>를 잡았습니다.`;});
+x.fillStyle="#fff";x.fillRect(0,0,600,300);x.fillStyle="#5B5F6B";x.font="16px 'Gowun Dodum', sans-serif";x.fillText("'공 하나 떨어뜨리기'를 눌러 보십시오.",180,150);
+})();
+
+</script>
+</body>
+</html>
