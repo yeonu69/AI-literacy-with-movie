@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>에니그마 암호 체험실</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="1장 생각하는 기계의 꿈 · 에니그마 암호 체험실. 코딩 없이 브라우저에서 해 보는 체험 시뮬레이터입니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 레이아웃: 연구 노트 한 권. 실험 세 개가 위에서 아래로 이어지고, 각 실험은 '조작판 + 펜 그림 + 읽는 법' 세 칸입니다. 종이 한 가지 모습만 씁니다. */
+:root{
+  --paper:#FBFAF6; --paper-2:#F3F1EA; --ink:#23262E; --ink-soft:#5B5F6B; --line:#C9C6BB;
+  --blue:#2F55A4; --violet:#5D6FB3; --lav:#ECEFF9;
+  --teal:#1E6E6E; --teal-bg:#E3F0F0; --amber:#9A5B12; --amber-bg:#FFF3DD;
+  --alarm:#C2412D; --alarm-bg:#FBE6E1; --ok:#2E7D4F;
+  --f-hand:"Gaegu","Nanum Pen Script","Gowun Dodum",cursive;
+  --f-body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --sketch:255px 12px 225px 14px / 14px 225px 12px 255px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.7;
+  background-image:linear-gradient(var(--paper-2) 1px,transparent 1px);background-size:100% 28px}
+.wrap{max-width:860px;margin:0 auto;padding-block:28px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--f-hand);font-weight:700;line-height:1.2;text-wrap:balance;margin:0}
+p{margin:0}
+.eyebrow{font-size:13px;letter-spacing:.06em;color:var(--violet);font-weight:700}
+header.top{display:flex;flex-direction:column;gap:14px}
+header.top h1{font-size:clamp(34px,6vw,50px);color:var(--blue)}
+header.top .lead{max-width:62ch;color:var(--ink-soft)}
+.film{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:16px 18px;display:flex;gap:16px;align-items:flex-start}
+.film svg{flex:0 0 56px}
+.film div{min-width:0}
+.film b{font-family:var(--f-hand);font-size:22px}
+.film p{font-size:15px;color:var(--ink-soft)}
+nav.jump{display:flex;flex-wrap:wrap;gap:8px}
+nav.jump a{font-family:var(--f-hand);font-size:19px;color:var(--ink);text-decoration:none;border:1.5px dashed var(--ink-soft);border-radius:999px;padding:2px 14px;background:var(--paper)}
+nav.jump a:hover,nav.jump a:focus-visible{border-style:solid;background:var(--lav)}
+section.exp{display:flex;flex-direction:column;gap:18px;scroll-margin-top:12px}
+.exp-head{display:flex;gap:14px;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:8px}
+.exp-head .no{font-family:var(--f-hand);font-size:44px;color:var(--violet);line-height:1}
+.exp-head h2{font-size:clamp(26px,4.4vw,34px)}
+.exp-head small{display:block;font-family:var(--f-body);font-size:13px;color:var(--ink-soft);font-weight:400}
+.q{font-size:17px;max-width:64ch}
+.panel{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:18px;display:flex;flex-direction:column;gap:16px}
+.controls{display:flex;flex-wrap:wrap;gap:18px 28px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ctl label,.ctl .lbl{font-size:14px;color:var(--ink-soft)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;cursor:pointer}
+.seg button,.btn{font-family:var(--f-hand);font-size:19px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);padding:2px 14px;border-radius:var(--sketch);line-height:1.4}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.btn:hover,.seg button:hover{background:var(--lav)}
+.seg button[aria-pressed="true"]:hover{background:var(--ink)}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn.primary:hover{background:#244585}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+input[type=range]{width:min(320px,100%);accent-color:var(--blue)}
+.val{font-family:var(--f-num);font-size:15px;color:var(--ink)}
+.check{display:flex;gap:8px;align-items:center;font-size:15px}
+.check input{width:18px;height:18px;accent-color:var(--blue)}
+.figure{overflow-x:auto}
+.figure svg{display:block;width:100%;height:auto;max-width:100%}
+.big{font-family:var(--f-hand);font-size:clamp(24px,4vw,30px);line-height:1.3}
+.big em{font-style:normal;color:var(--alarm);background:linear-gradient(transparent 60%,var(--alarm-bg) 60%)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{border-top:2px solid var(--ink);padding-top:6px}
+.stat span{display:block;font-size:13px;color:var(--ink-soft)}
+.stat b{font-family:var(--f-num);font-size:20px;font-variant-numeric:tabular-nums;font-weight:500}
+.stat.alarm b{color:var(--alarm)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;color:var(--ink-soft)}
+.legend i{display:inline-block;width:12px;height:12px;border:1.5px solid var(--ink);border-radius:50%;margin-right:6px;vertical-align:-1px}
+.box{border-radius:var(--sketch);padding:14px 16px;font-size:15px;max-width:none}
+.box b.t{display:block;font-family:var(--f-hand);font-size:20px;margin-bottom:2px}
+.box.teal{background:var(--teal-bg)} .box.teal b.t{color:var(--teal)}
+.box.amber{background:var(--amber-bg)} .box.amber b.t{color:var(--amber)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:640px){.two{grid-template-columns:minmax(0,1fr)}}
+table.cm{border-collapse:separate;border-spacing:6px;width:100%;font-size:14px}
+table.cm th{font-weight:400;color:var(--ink-soft);font-size:13px;text-align:center}
+table.cm td{border:2px solid var(--ink);border-radius:var(--sketch);text-align:center;padding:8px 4px;background:var(--paper)}
+table.cm td b{display:block;font-family:var(--f-num);font-size:24px;font-weight:500}
+table.cm td.tp{background:#E4F1E8} table.cm td.fp{background:var(--alarm-bg)} table.cm td.fn{background:var(--amber-bg)}
+.meter{display:flex;flex-direction:column;gap:10px}
+.meter .row{display:grid;grid-template-columns:5.5em minmax(0,1fr) 3.4em;gap:10px;align-items:center;font-size:14px}
+.meter .bar{height:14px;border:1.5px solid var(--ink);border-radius:8px;background:var(--paper);overflow:hidden}
+.meter .bar i{display:block;height:100%;background:var(--blue);transition:width .25s}
+.meter .num{font-family:var(--f-num);text-align:right;font-variant-numeric:tabular-nums}
+.missions{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.mission{border:2px dashed var(--ink-soft);border-radius:var(--sketch);padding:12px 14px;font-size:15px;background:var(--paper)}
+.mission.done{border-style:solid;border-color:var(--ok);background:#EEF6F0}
+.mission b{font-family:var(--f-hand);font-size:20px;display:block}
+.mission .st{font-size:13px;color:var(--ink-soft)}
+.mission.done .st{color:var(--ok);font-weight:700}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.log{font-family:var(--f-num);font-size:13px;line-height:1.6;max-height:180px;overflow:auto;background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--ink-soft)}
+.log div b{color:var(--ink);font-weight:500}
+.reveal{display:flex;flex-direction:column;gap:6px}
+footer{border-top:2px solid var(--ink);padding-top:14px;font-size:14px;color:var(--ink-soft);display:flex;flex-direction:column;gap:8px}
+footer a{color:var(--blue)}
+.links{display:flex;flex-wrap:wrap;gap:8px 18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+canvas.pix{display:block;image-rendering:pixelated;border:2px solid var(--ink);border-radius:6px;background:#fff;max-width:100%;height:auto;touch-action:none}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.row>*{min-width:0}
+.cap{font-size:13px;color:var(--ink-soft)}
+.mono{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+textarea,input[type=text]{font:inherit;font-size:16px;border:2px solid var(--ink);border-radius:8px;padding:8px 10px;background:var(--paper);color:var(--ink);width:100%}
+select{font:inherit;font-size:15px;border:2px solid var(--ink);border-radius:8px;padding:4px 8px;background:var(--paper);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--f-num);font-size:14px;border:1.5px solid var(--ink);border-radius:6px;padding:2px 8px;background:var(--paper)}
+.tag{display:inline-block;font-size:12px;border-radius:999px;padding:0 8px;border:1.5px solid currentColor}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="2.2"/></filter>
+    <symbol id="person" viewBox="0 0 20 30"><circle cx="10" cy="6.5" r="4.6"/><path d="M2.5 29 C2.5 18 5 13.5 10 13.5 S17.5 18 17.5 29 Z"/></symbol>
+  </defs>
+</svg>
+<div class="wrap">
+<header class="top">
+  <p class="eyebrow">영화관으로 간 AI 리터러시 · 1장 생각하는 기계의 꿈 · 체험실</p>
+  <h1>에니그마를 직접 돌려 보세요</h1>
+  <p class="lead">코드는 없습니다. 자판을 눌러 보기만 하면 됩니다. 암호 기계가 어떻게 글자를 바꾸는지, 튜링 팀이 그 약점을 어떻게 찾았는지 직접 겪어 봅니다.</p>
+  <div class="film">
+    <svg viewBox="0 0 56 56" aria-hidden="true" style="filter:url(#rough)"><rect x="4" y="10" width="48" height="36" rx="3" fill="none" stroke="#23262E" stroke-width="2.4"/><g fill="#23262E"><rect x="8" y="14" width="5" height="4"/><rect x="8" y="24" width="5" height="4"/><rect x="8" y="34" width="5" height="4"/><rect x="43" y="14" width="5" height="4"/><rect x="43" y="24" width="5" height="4"/><rect x="43" y="34" width="5" height="4"/></g><circle cx="28" cy="28" r="7" fill="none" stroke="#C2412D" stroke-width="2.4"/><circle cx="28" cy="28" r="2.2" fill="#C2412D"/></svg>
+    <div>
+      <b>「이미테이션 게임」(2014)</b>
+      <p>1939년, 독일군은 에니그마라는 암호 기계로 명령을 주고받습니다. 영국의 블레츨리 파크에 모인 튜링 팀은 날마다 자정에 바뀌는 설정을 하루 안에 찾아야 합니다. 그들은 기계를 기계로 풀기로 합니다.</p>
+    </div>
+  </div>
+  <nav class="jump" aria-label="실험 바로 가기"><a href="#enigma">실험 1 · 글자를 바꾸는 바퀴</a><a href="#crib">실험 2 · 크립으로 후보 지우기</a></nav>
+</header>
+<section class="exp" id="enigma">
+  <div class="exp-head"><span class="no">1</span><h2>글자를 바꾸는 바퀴<small>책 1장 3-4절 · 에니그마, 로터, 반사판</small></h2></div>
+  <p class="q">아래는 실제 에니그마와 같은 배선을 쓴 작은 에니그마입니다. 자판을 누르면 바퀴(로터)가 한 칸 돌고, 전구 하나에 불이 들어옵니다. 같은 글자를 여러 번 눌러 보십시오.</p>
+  <div class="panel">
+    <div class="controls">
+      <div class="ctl"><span class="lbl">시작 위치 (그날의 설정)</span>
+        <div class="row" style="gap:6px"><select id="p0" aria-label="왼쪽 로터"></select><select id="p1" aria-label="가운데 로터"></select><select id="p2" aria-label="오른쪽 로터"></select></div>
+      </div>
+      <div class="btnrow">
+        <button type="button" class="btn" id="aaaa">A를 다섯 번 누르기</button>
+        <button type="button" class="btn" id="clr">처음 위치로</button>
+      </div>
+    </div>
+    <div class="figure" aria-hidden="true"><svg id="machine" viewBox="0 0 640 150"></svg></div>
+    <div id="kb" style="display:flex;flex-direction:column;gap:6px;align-items:center"></div>
+    <div class="two">
+      <div class="reveal"><span class="cap">누른 글자 (평문)</span><div class="log" id="plain" style="min-height:44px;font-size:16px;letter-spacing:.15em"></div></div>
+      <div class="reveal"><span class="cap">켜진 전구 (암호문)</span><div class="log" id="cipher" style="min-height:44px;font-size:16px;letter-spacing:.15em;color:#C2412D"></div></div>
+    </div>
+    <div class="reveal"><span class="cap">방금 누른 글자가 지나간 길</span><div class="chips" id="path"></div></div>
+    <div class="btnrow"><button type="button" class="btn primary" id="decode">암호문을 같은 설정으로 다시 쳐 보기</button><span class="cap" id="decodeOut"></span></div>
+  </div>
+  <div class="box teal"><b class="t">읽는 법</b>A를 다섯 번 눌러도 매번 다른 글자가 나옵니다. 키를 누를 때마다 로터가 돌기 때문입니다. 그래서 자주 나오는 글자를 세는 빈도 분석이 통하지 않습니다. 또 지나간 길을 보면 신호가 반사판에서 되돌아옵니다. 그 덕분에 같은 설정으로 암호문을 치면 평문이 나옵니다. 그런데 한 가지 이상한 점이 있습니다. <b>어떤 글자도 자기 자신으로 바뀌지 않습니다.</b> 이 작은 약점이 실험 2의 열쇠입니다.</div>
+</section>
+
+<section class="exp" id="crib">
+  <div class="exp-head"><span class="no">2</span><h2>크립으로 후보 지우기<small>책 1장 3-5절 · 크립과 봄브</small></h2></div>
+  <p class="q">가로챈 독일군 암호문입니다. 아침마다 오는 날씨 보고라서 어딘가에 WETTERBERICHT(날씨 보고)라는 단어가 들어 있을 것입니다. 그 단어를 암호문 아래에 대고 밀어 보십시오. 위아래 글자가 같은 자리가 하나라도 있으면, 그 자리는 정답이 될 수 없습니다.</p>
+  <div class="panel">
+    <div class="ctl"><label for="cpos">크립을 놓을 자리 <span class="val" id="cposVal"></span></label><input type="range" id="cpos" min="0" value="0" step="1" style="width:100%"></div>
+    <div class="figure"><svg id="cribSvg" viewBox="0 0 640 120" aria-label="암호문과 크립"></svg></div>
+    <p class="big" id="cribHead"></p>
+    <div class="btnrow"><button type="button" class="btn primary" id="scanAll">봄브처럼 모든 자리 한꺼번에 검사</button><button type="button" class="btn" id="showAns">정답 자리 보기</button></div>
+    <div class="figure"><svg id="cribMap" viewBox="0 0 640 70" aria-label="자리별 검사 결과"></svg></div>
+    <div class="legend"><span><i style="background:#FBE6E1"></i>지운 자리 (같은 글자가 겹침)</span><span><i style="background:#E4F1E8"></i>남은 후보</span></div>
+  </div>
+  <div class="box amber"><b class="t">생각해 볼 것</b>튜링 팀은 1억 5천만 조 가지 설정을 하나씩 해 보지 않았습니다. 단서로 답이 될 수 없는 것부터 지웠습니다. 남은 후보만 기계(봄브)가 빠르게 검사했습니다. 오늘날 체스나 바둑을 두는 AI도 모든 수를 보지 않고 가능성 없는 수부터 지웁니다.</div>
+</section>
+
+<footer>
+  <p>이 체험실의 숫자는 원리를 보여 주려고 만든 가상의 값입니다.</p>
+  <div class="links"><a href="https://yeonu69.github.io/AI-literacy-with-movie/ch01/lab/">1장 코랩 실습 열기</a><a href="https://yeonu69.github.io/AI-literacy-with-movie/ch01/t1/">「이미테이션 게임」 예고편</a><a href="https://yeonu69.github.io/AI-literacy-with-movie/sim/">다른 장 체험실 보기</a></div>
+  <p>「영화관으로 간 AI 리터러시」 웹부록 · AInsight@Movie</p>
+</footer>
+</div>
+<script>
+const NS="http://www.w3.org/2000/svg";
+const INK="#23262E", ALARM="#C2412D", GREY="#E6E3DA", SOFT="#5B5F6B", BLUE="#2F55A4", TEAL="#1E6E6E", AMBER="#9A5B12", OK="#2E7D4F", PAPER="#FBFAF6", VIOLET="#5D6FB3", LINE="#C9C6BB";
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n).toLocaleString("ko-KR");
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function txt(parent,x,y,s,attrs){const t=el("text",Object.assign({x,y,"font-family":"Gaegu, cursive","font-size":18,fill:INK},attrs||{}),parent);t.textContent=s;return t;}
+function sk(parent){return el("g",{style:"filter:url(#rough)"},parent);}
+function rng(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+function seg(id,cb){const g=$(id);g.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{g.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));cb(b.dataset.v,b);}));}
+function stats(id,items){$(id).innerHTML=items.map(([l,v,c])=>`<div class="stat ${c||""}"><span>${l}</span><b>${v}</b></div>`).join("");}
+
+(function(){
+const A="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const W=["EKMFLGDQVZNTOWYHXUSPAIBRCJ","AJDKSIRUXBLHWTMCQGZNPYFVOE","BDFHJLCPRTXVZNYEIWGAKMUSQO"], NOTCH=["Q","E","V"], REF="YRUHQSLDPXNGOKMIEBFZCWVJAT";
+const INV=W.map(w=>{const a=[];for(let i=0;i<26;i++)a[w.charCodeAt(i)-65]=i;return a;});
+function mk(pos){return{pos:pos.slice()};}
+function step(m){const p=m.pos;const midNotch=A[p[1]]===NOTCH[1], rNotch=A[p[2]]===NOTCH[2];
+  if(midNotch){p[1]=(p[1]+1)%26;p[0]=(p[0]+1)%26;} else if(rNotch){p[1]=(p[1]+1)%26;}
+  p[2]=(p[2]+1)%26;}
+function fwd(r,pos,c){const i=(c+pos)%26;return(W[r].charCodeAt(i)-65-pos+26)%26;}
+function bwd(r,pos,c){const i=(c+pos)%26;return(INV[r][i]-pos+26)%26;}
+function press(m,ch){step(m);const p=m.pos;let c=ch.charCodeAt(0)-65;const path=[ch];
+  c=fwd(2,p[2],c);path.push(A[c]);c=fwd(1,p[1],c);path.push(A[c]);c=fwd(0,p[0],c);path.push(A[c]);
+  c=REF.charCodeAt(c)-65;path.push(A[c]);
+  c=bwd(0,p[0],c);path.push(A[c]);c=bwd(1,p[1],c);path.push(A[c]);c=bwd(2,p[2],c);path.push(A[c]);
+  return{out:A[c],path};}
+function encrypt(start,s){const m=mk(start);return s.split("").map(ch=>press(m,ch).out).join("");}
+
+/* 실험 1 */
+const sel=[$("p0"),$("p1"),$("p2")];
+sel.forEach((s,i)=>{for(const ch of A){const o=document.createElement("option");o.textContent=ch;s.appendChild(o);} s.value=["M","C","K"][i]; s.addEventListener("change",resetM);});
+let M, plain="", ciph="", lit=null;
+function start(){return sel.map(s=>A.indexOf(s.value));}
+function resetM(){M=mk(start());plain="";ciph="";lit=null;$("path").innerHTML="";$("decodeOut").textContent="";draw();}
+const rows=["QWERTZUIO","ASDFGHJK","PYXCVBNML"];
+rows.forEach(r=>{const d=document.createElement("div");d.style.cssText="display:flex;gap:5px;flex-wrap:wrap;justify-content:center";
+  for(const ch of r){const b=document.createElement("button");b.type="button";b.className="btn";b.textContent=ch;b.style.cssText="min-width:34px;padding:2px 6px";b.addEventListener("click",()=>key(ch));d.appendChild(b);}
+  $("kb").appendChild(d);});
+document.addEventListener("keydown",e=>{if(e.target.tagName==="SELECT"||e.target.tagName==="INPUT"||e.metaKey||e.ctrlKey)return;const k=e.key.toUpperCase();if(k.length===1&&A.includes(k)){key(k);}});
+function key(ch){const r=press(M,ch);plain+=ch;ciph+=r.out;lit=r.out;
+  const names=["누른 글자","오른쪽 로터","가운데 로터","왼쪽 로터","반사판","왼쪽 로터","가운데 로터","오른쪽 로터 → 전구"];
+  $("path").innerHTML=r.path.map((c,i)=>`<span class="chip" title="${names[i]}">${i?"→ ":""}${c}<small style="font-family:var(--f-body);color:var(--ink-soft)"> ${names[i]}</small></span>`).join("");
+  draw();}
+function draw(){
+  $("plain").textContent=plain.replace(/(.{5})/g,"$1 ")||"자판을 눌러 보십시오";
+  $("cipher").textContent=ciph.replace(/(.{5})/g,"$1 ")||"·";
+  const s=$("machine");s.innerHTML="";const g=sk(s);
+  const labels=["왼쪽","가운데","오른쪽"];
+  for(let i=0;i<3;i++){const x=190+i*110;
+    el("rect",{x:x,y:20,width:70,height:96,rx:12,fill:"#F3F1EA",stroke:INK,"stroke-width":2},g);
+    for(let k=-1;k<=1;k++){const ch=A[(M.pos[i]+k+26)%26];txt(s,x+35,72+k*26,ch,{"text-anchor":"middle","font-size":k?16:30,"font-weight":700,fill:k?"#9A968C":INK,"font-family":"IBM Plex Mono, monospace"});}
+    el("rect",{x:x+8,y:48,width:54,height:34,rx:6,fill:"none",stroke:BLUE,"stroke-width":2},g);
+    txt(s,x+35,138,labels[i]+" 로터",{"text-anchor":"middle","font-size":15,fill:SOFT});}
+  el("rect",{x:40,y:32,width:90,height:72,rx:10,fill:"#fff",stroke:INK,"stroke-width":2},g);
+  txt(s,85,62,"반사판",{"text-anchor":"middle","font-size":17});txt(s,85,88,"되돌림",{"text-anchor":"middle","font-size":14,fill:SOFT});
+  el("circle",{cx:560,cy:68,r:30,fill:lit?"#FCE7A0":"#fff",stroke:INK,"stroke-width":2},g);
+  txt(s,560,80,lit||"·",{"text-anchor":"middle","font-size":30,"font-weight":700,fill:lit?ALARM:SOFT});
+  txt(s,560,138,"전구",{"text-anchor":"middle","font-size":15,fill:SOFT});
+}
+$("aaaa").addEventListener("click",()=>{for(let i=0;i<5;i++)key("A");});
+$("clr").addEventListener("click",resetM);
+$("decode").addEventListener("click",()=>{if(!ciph){$("decodeOut").textContent="먼저 글자를 몇 개 눌러 보십시오.";return;}
+  const back=encrypt(start(),ciph);$("decodeOut").innerHTML=`${ciph} → <b>${back}</b> · 처음 친 글자가 그대로 돌아왔습니다.`;});
+resetM();
+
+/* 실험 2 */
+const MSG="ANXOBERKOMMANDOWETTERBERICHTNORDSEEREGENWINDSTAERKEVIER";
+const CT=encrypt([3,14,6],MSG), CRIB="WETTERBERICHT", TRUE=MSG.indexOf(CRIB);
+const maxP=CT.length-CRIB.length; const cpos=$("cpos"); cpos.max=maxP;
+let scanned=false, ans=false;
+function clash(p){const r=[];for(let i=0;i<CRIB.length;i++)if(CT[p+i]===CRIB[i])r.push(p+i);return r;}
+function drawCrib(){
+  const p=+cpos.value; $("cposVal").textContent=(p+1)+"번째 글자부터";
+  const s=$("cribSvg");s.innerHTML="";const cw=Math.min(16,620/CT.length), x0=(640-cw*CT.length)/2;
+  s.setAttribute("viewBox",`0 0 640 120`);
+  const cl=clash(p);
+  for(let i=0;i<CT.length;i++){const x=x0+i*cw;const inC=i>=p&&i<p+CRIB.length;const bad=cl.includes(i);
+    if(inC)el("rect",{x:x,y:14,width:cw,height:76,fill:bad?"#FBE6E1":"#ECEFF9"},s);
+    txt(s,x+cw/2,42,CT[i],{"text-anchor":"middle","font-size":13,"font-family":"IBM Plex Mono, monospace",fill:bad?ALARM:INK});
+    if(inC)txt(s,x+cw/2,78,CRIB[i-p],{"text-anchor":"middle","font-size":13,"font-family":"IBM Plex Mono, monospace",fill:bad?ALARM:BLUE,"font-weight":bad?700:400});
+    if(bad)el("line",{x1:x+1,y1:20,x2:x+cw-1,y2:86,stroke:ALARM,"stroke-width":1.5},s);}
+  txt(s,x0,108,"위: 가로챈 암호문 · 아래: 크립(WETTERBERICHT)",{"font-size":14,fill:SOFT,"font-family":"Gowun Dodum, sans-serif"});
+  $("cribHead").innerHTML=cl.length?`겹치는 글자가 <em>${cl.length}개</em> 있습니다. 이 자리는 지웁니다.`:`겹치는 글자가 없습니다. 이 자리는 <b>후보</b>로 남깁니다.`;
+  const m=$("cribMap");m.innerHTML="";const w=620/(maxP+1);
+  for(let q=0;q<=maxP;q++){const known=scanned||q===p;const ok=clash(q).length===0;
+    el("rect",{x:10+q*w,y:10,width:w-2,height:30,rx:3,fill:!known?"#fff":ok?"#E4F1E8":"#FBE6E1",stroke:q===p?INK:LINE,"stroke-width":q===p?2:1},m);
+    if(ans&&q===TRUE)txt(m,10+q*w+w/2-1,62,"★ 정답",{"text-anchor":"middle","font-size":14,fill:ALARM});}
+  if(scanned){const left=[...Array(maxP+1).keys()].filter(q=>clash(q).length===0).length;
+    if(!ans)txt(m,10,62,`${maxP+1}자리 가운데 ${maxP+1-left}자리를 지우고 ${left}자리가 남았습니다.`,{"font-size":15,"font-family":"Gowun Dodum, sans-serif"});}
+}
+cpos.addEventListener("input",drawCrib);
+$("scanAll").addEventListener("click",()=>{scanned=true;drawCrib();});
+$("showAns").addEventListener("click",()=>{scanned=true;ans=true;cpos.value=TRUE;drawCrib();});
+drawCrib();
+})();
+
+</script>
+</body>
+</html>

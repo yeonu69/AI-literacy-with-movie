@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>예지자의 경보 체험실</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="6장 범죄를 예측하는 AI · 예지자의 경보 체험실. 코딩 없이 브라우저에서 해 보는 체험 시뮬레이터입니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 레이아웃: 연구 노트 한 권. 실험 세 개가 위에서 아래로 이어지고, 각 실험은 '조작판 + 펜 그림 + 읽는 법' 세 칸입니다. 종이 한 가지 모습만 씁니다. */
+:root{
+  --paper:#FBFAF6; --paper-2:#F3F1EA; --ink:#23262E; --ink-soft:#5B5F6B; --line:#C9C6BB;
+  --blue:#2F55A4; --violet:#5D6FB3; --lav:#ECEFF9;
+  --teal:#1E6E6E; --teal-bg:#E3F0F0; --amber:#9A5B12; --amber-bg:#FFF3DD;
+  --alarm:#C2412D; --alarm-bg:#FBE6E1; --ok:#2E7D4F;
+  --f-hand:"Gaegu","Nanum Pen Script","Gowun Dodum",cursive;
+  --f-body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --sketch:255px 12px 225px 14px / 14px 225px 12px 255px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.7;
+  background-image:linear-gradient(var(--paper-2) 1px,transparent 1px);background-size:100% 28px}
+.wrap{max-width:860px;margin:0 auto;padding-block:28px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--f-hand);font-weight:700;line-height:1.2;text-wrap:balance;margin:0}
+p{margin:0}
+.eyebrow{font-size:13px;letter-spacing:.06em;color:var(--violet);font-weight:700}
+header.top{display:flex;flex-direction:column;gap:14px}
+header.top h1{font-size:clamp(34px,6vw,50px);color:var(--blue)}
+header.top .lead{max-width:62ch;color:var(--ink-soft)}
+.film{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:16px 18px;display:flex;gap:16px;align-items:flex-start}
+.film svg{flex:0 0 56px}
+.film div{min-width:0}
+.film b{font-family:var(--f-hand);font-size:22px}
+.film p{font-size:15px;color:var(--ink-soft)}
+nav.jump{display:flex;flex-wrap:wrap;gap:8px}
+nav.jump a{font-family:var(--f-hand);font-size:19px;color:var(--ink);text-decoration:none;border:1.5px dashed var(--ink-soft);border-radius:999px;padding:2px 14px;background:var(--paper)}
+nav.jump a:hover,nav.jump a:focus-visible{border-style:solid;background:var(--lav)}
+section.exp{display:flex;flex-direction:column;gap:18px;scroll-margin-top:12px}
+.exp-head{display:flex;gap:14px;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:8px}
+.exp-head .no{font-family:var(--f-hand);font-size:44px;color:var(--violet);line-height:1}
+.exp-head h2{font-size:clamp(26px,4.4vw,34px)}
+.exp-head small{display:block;font-family:var(--f-body);font-size:13px;color:var(--ink-soft);font-weight:400}
+.q{font-size:17px;max-width:64ch}
+.panel{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:18px;display:flex;flex-direction:column;gap:16px}
+.controls{display:flex;flex-wrap:wrap;gap:18px 28px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ctl label,.ctl .lbl{font-size:14px;color:var(--ink-soft)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;cursor:pointer}
+.seg button,.btn{font-family:var(--f-hand);font-size:19px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);padding:2px 14px;border-radius:var(--sketch);line-height:1.4}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.btn:hover,.seg button:hover{background:var(--lav)}
+.seg button[aria-pressed="true"]:hover{background:var(--ink)}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn.primary:hover{background:#244585}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+input[type=range]{width:min(320px,100%);accent-color:var(--blue)}
+.val{font-family:var(--f-num);font-size:15px;color:var(--ink)}
+.check{display:flex;gap:8px;align-items:center;font-size:15px}
+.check input{width:18px;height:18px;accent-color:var(--blue)}
+.figure{overflow-x:auto}
+.figure svg{display:block;width:100%;height:auto;max-width:100%}
+.big{font-family:var(--f-hand);font-size:clamp(24px,4vw,30px);line-height:1.3}
+.big em{font-style:normal;color:var(--alarm);background:linear-gradient(transparent 60%,var(--alarm-bg) 60%)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{border-top:2px solid var(--ink);padding-top:6px}
+.stat span{display:block;font-size:13px;color:var(--ink-soft)}
+.stat b{font-family:var(--f-num);font-size:20px;font-variant-numeric:tabular-nums;font-weight:500}
+.stat.alarm b{color:var(--alarm)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;color:var(--ink-soft)}
+.legend i{display:inline-block;width:12px;height:12px;border:1.5px solid var(--ink);border-radius:50%;margin-right:6px;vertical-align:-1px}
+.box{border-radius:var(--sketch);padding:14px 16px;font-size:15px;max-width:none}
+.box b.t{display:block;font-family:var(--f-hand);font-size:20px;margin-bottom:2px}
+.box.teal{background:var(--teal-bg)} .box.teal b.t{color:var(--teal)}
+.box.amber{background:var(--amber-bg)} .box.amber b.t{color:var(--amber)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:640px){.two{grid-template-columns:minmax(0,1fr)}}
+table.cm{border-collapse:separate;border-spacing:6px;width:100%;font-size:14px}
+table.cm th{font-weight:400;color:var(--ink-soft);font-size:13px;text-align:center}
+table.cm td{border:2px solid var(--ink);border-radius:var(--sketch);text-align:center;padding:8px 4px;background:var(--paper)}
+table.cm td b{display:block;font-family:var(--f-num);font-size:24px;font-weight:500}
+table.cm td.tp{background:#E4F1E8} table.cm td.fp{background:var(--alarm-bg)} table.cm td.fn{background:var(--amber-bg)}
+.meter{display:flex;flex-direction:column;gap:10px}
+.meter .row{display:grid;grid-template-columns:5.5em minmax(0,1fr) 3.4em;gap:10px;align-items:center;font-size:14px}
+.meter .bar{height:14px;border:1.5px solid var(--ink);border-radius:8px;background:var(--paper);overflow:hidden}
+.meter .bar i{display:block;height:100%;background:var(--blue);transition:width .25s}
+.meter .num{font-family:var(--f-num);text-align:right;font-variant-numeric:tabular-nums}
+.missions{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.mission{border:2px dashed var(--ink-soft);border-radius:var(--sketch);padding:12px 14px;font-size:15px;background:var(--paper)}
+.mission.done{border-style:solid;border-color:var(--ok);background:#EEF6F0}
+.mission b{font-family:var(--f-hand);font-size:20px;display:block}
+.mission .st{font-size:13px;color:var(--ink-soft)}
+.mission.done .st{color:var(--ok);font-weight:700}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.log{font-family:var(--f-num);font-size:13px;line-height:1.6;max-height:180px;overflow:auto;background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--ink-soft)}
+.log div b{color:var(--ink);font-weight:500}
+.reveal{display:flex;flex-direction:column;gap:6px}
+footer{border-top:2px solid var(--ink);padding-top:14px;font-size:14px;color:var(--ink-soft);display:flex;flex-direction:column;gap:8px}
+footer a{color:var(--blue)}
+.links{display:flex;flex-wrap:wrap;gap:8px 18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+canvas.pix{display:block;image-rendering:pixelated;border:2px solid var(--ink);border-radius:6px;background:#fff;max-width:100%;height:auto;touch-action:none}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.row>*{min-width:0}
+.cap{font-size:13px;color:var(--ink-soft)}
+.mono{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+textarea,input[type=text]{font:inherit;font-size:16px;border:2px solid var(--ink);border-radius:8px;padding:8px 10px;background:var(--paper);color:var(--ink);width:100%}
+select{font:inherit;font-size:15px;border:2px solid var(--ink);border-radius:8px;padding:4px 8px;background:var(--paper);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--f-num);font-size:14px;border:1.5px solid var(--ink);border-radius:6px;padding:2px 8px;background:var(--paper)}
+.tag{display:inline-block;font-size:12px;border-radius:999px;padding:0 8px;border:1.5px solid currentColor}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="2.2"/></filter>
+    <symbol id="person" viewBox="0 0 20 30"><circle cx="10" cy="6.5" r="4.6"/><path d="M2.5 29 C2.5 18 5 13.5 10 13.5 S17.5 18 17.5 29 Z"/></symbol>
+  </defs>
+</svg>
+<div class="wrap">
+<header class="top">
+  <p class="eyebrow">영화관으로 간 AI 리터러시 · 6장 범죄를 예측하는 AI · 체험실</p>
+  <h1>예지자의 경보, 믿어도 될까요?</h1>
+  <p class="lead">코드는 없습니다. 버튼을 누르고 막대를 밀어 보기만 하면 됩니다. 실험 세 개를 차례로 해 보시면 책 6장의 기저율, 기준선, 피드백 루프가 손에 잡힙니다.</p>
+  <div class="film">
+    <svg viewBox="0 0 56 56" aria-hidden="true" style="filter:url(#rough)"><rect x="4" y="10" width="48" height="36" rx="3" fill="none" stroke="#23262E" stroke-width="2.4"/><g fill="#23262E"><rect x="8" y="14" width="5" height="4"/><rect x="8" y="24" width="5" height="4"/><rect x="8" y="34" width="5" height="4"/><rect x="43" y="14" width="5" height="4"/><rect x="43" y="24" width="5" height="4"/><rect x="43" y="34" width="5" height="4"/></g><circle cx="28" cy="28" r="7" fill="none" stroke="#C2412D" stroke-width="2.4"/><circle cx="28" cy="28" r="2.2" fill="#C2412D"/></svg>
+    <div>
+      <b>「마이너리티 리포트」(2002)</b>
+      <p>2054년 워싱턴 D.C.의 범죄예방국은 세 예지자가 본 미래를 보고, 범죄가 일어나기 전에 사람을 체포합니다. 지금의 범죄 예측 AI는 미래를 보지 못합니다. 과거 기록에서 확률을 계산할 뿐입니다. 그 확률이 얼마나 믿을 만한지 직접 확인해 보겠습니다.</p>
+    </div>
+  </div>
+  <nav class="jump" aria-label="실험 바로 가기"><a href="#base">실험 1 · 정확도 99%의 함정</a><a href="#threshold">실험 2 · 기준선 시소</a><a href="#loop">실험 3 · 스스로 커지는 예측</a></nav>
+</header>
+<!-- 실험 1 -->
+<section class="exp" id="base">
+  <div class="exp-head"><span class="no">1</span><h2>정확도 99%의 함정<small>책 6장 3-6절 · 기저율</small></h2></div>
+  <p class="q">시민 10만 명이 사는 도시에 99% 정확한 경보 AI를 들였습니다. 경보가 울린 사람은 정말 위험한 사람일까요? 두 값을 바꿔 가며 확인해 보십시오.</p>
+  <div class="panel">
+    <div class="controls">
+      <div class="ctl"><span class="lbl" id="lblRate">실제 위험자는 몇 명 중 한 명입니까? (기저율)</span>
+        <div class="seg" role="group" aria-labelledby="lblRate" id="rateSeg">
+          <button type="button" data-v="10">10명 중 1명</button>
+          <button type="button" data-v="100">100명 중 1명</button>
+          <button type="button" data-v="1000" aria-pressed="true">1,000명 중 1명</button>
+          <button type="button" data-v="10000">10,000명 중 1명</button>
+        </div>
+      </div>
+      <div class="ctl"><label for="acc">AI의 정확도 <span class="val" id="accVal">99%</span></label>
+        <input type="range" id="acc" min="80" max="99.9" step="0.1" value="99">
+      </div>
+    </div>
+    <p class="big" id="baseHeadline"></p>
+    <div class="figure" aria-hidden="true"><svg id="grid100" viewBox="0 0 600 250"></svg></div>
+    <div class="legend"><span><i style="background:#C2412D"></i>경보가 맞은 사람 (진짜 위험자)</span><span><i style="background:#E6E3DA"></i>경보가 헛짚은 사람 (평범한 시민)</span></div>
+    <div class="stats" id="baseStats"></div>
+  </div>
+  <div class="box teal"><b class="t">읽는 법</b>위 그림은 경보가 울린 사람 100명을 한자리에 모은 모습입니다. 범죄자가 드물수록 평범한 사람이 압도적으로 많습니다. 그래서 1%만 잘못 울려도 헛짚은 경보가 진짜보다 많아집니다. 원래 얼마나 흔한지를 <b>기저율</b>이라고 합니다. 기저율을 '10명 중 1명'으로 바꿔 보시면 같은 AI가 갑자기 믿을 만해집니다.</div>
+</section>
+
+<!-- 실험 2 -->
+<section class="exp" id="threshold">
+  <div class="exp-head"><span class="no">2</span><h2>기준선 시소<small>책 6장 3-7절 · 혼동행렬, 정밀도, 재현율</small></h2></div>
+  <p class="q">AI는 시민 20명에게 0에서 1 사이의 위험 점수를 매겼습니다. 기준선보다 높은 사람에게 경보가 울립니다. 기준선을 밀어 보면서 두 가지 실수, '놓침'과 '헛짚음'이 어떻게 시소를 타는지 보십시오.</p>
+  <div class="panel">
+    <div class="controls">
+      <div class="ctl"><label for="th">기준선 <span class="val" id="thVal">0.50</span> 이상이면 경보</label>
+        <input type="range" id="th" min="0" max="1" step="0.01" value="0.5">
+      </div>
+      <label class="check"><input type="checkbox" id="showTruth" checked>정답(실제 범죄 여부) 보이기</label>
+    </div>
+    <div class="figure" aria-hidden="true"><svg id="scoreLine" viewBox="0 0 640 170"></svg></div>
+    <div class="legend"><span><i style="background:#23262E"></i>실제로 범죄를 저지를 사람</span><span><i style="background:#fff"></i>평범한 시민</span><span><i style="background:#C2412D;border-color:#C2412D"></i>머리 위 빨간 불 = 경보</span></div>
+    <div class="two">
+      <div>
+        <table class="cm" aria-label="혼동행렬">
+          <tr><th></th><th>실제로 범죄</th><th>실제로 무고</th></tr>
+          <tr><th>경보 울림</th><td class="tp"><b id="cTP">0</b>잡음</td><td class="fp"><b id="cFP">0</b>헛짚음</td></tr>
+          <tr><th>경보 없음</th><td class="fn"><b id="cFN">0</b>놓침</td><td><b id="cTN">0</b>맞게 둠</td></tr>
+        </table>
+      </div>
+      <div class="meter">
+        <div class="figure" aria-hidden="true"><svg id="seesaw" viewBox="0 0 300 120"></svg></div>
+        <div class="row"><span>정밀도</span><span class="bar"><i id="barP"></i></span><span class="num" id="numP"></span></div>
+        <div class="row"><span>재현율</span><span class="bar"><i id="barR"></i></span><span class="num" id="numR"></span></div>
+      </div>
+    </div>
+    <p style="font-size:14px;color:var(--ink-soft)"><b>정밀도</b>는 경보가 울렸을 때 진짜일 비율입니다. <b>재현율</b>은 실제 사건 가운데 경보로 잡아낸 비율입니다. 기준선 0.50과 0.70에서 각각 얼마가 나오는지 책 [그림 6-9]와 비교해 보십시오.</p>
+    <div class="missions">
+      <div class="mission" id="m1"><b>임무 ① 화재경보기라면</b>불을 한 번도 놓치면 안 됩니다. '놓침'을 0으로 만드는 가장 높은 기준선을 찾아보십시오.<div class="st" id="m1s">아직 못 찾았습니다</div></div>
+      <div class="mission" id="m2"><b>임무 ② 사람에게 딱지를 붙인다면</b>무고한 사람을 한 명도 의심하면 안 됩니다. '헛짚음'을 0으로 만드는 가장 낮은 기준선을 찾아보십시오.<div class="st" id="m2s">아직 못 찾았습니다</div></div>
+    </div>
+  </div>
+  <div class="box amber"><b class="t">생각해 볼 것</b>두 임무를 다 해 보면 같은 AI, 같은 점수인데도 기준선이 전혀 다른 곳에 놓입니다. 두 실수를 동시에 0으로 만드는 자리는 없습니다. 어느 실수를 더 무겁게 볼지는 수학이 아니라 사람이 정하는 가치의 문제입니다.</div>
+</section>
+
+<!-- 실험 3 -->
+<section class="exp" id="loop">
+  <div class="exp-head"><span class="no">3</span><h2>스스로 커지는 예측<small>책 6장 4-2절 · 피드백 루프 · 실습 1을 화면으로</small></h2></div>
+  <p class="q">A동과 B동은 실제 범죄가 똑같이 일어납니다(날마다 50% 확률). 첫날 A동에만 기록이 한 건 있습니다. 순찰차 한 대는 매일 기록이 더 많은 동네로 갑니다. 순찰차가 간 곳에서만 범죄가 기록됩니다. 15일 뒤 기록은 어떻게 될까요?</p>
+  <div class="panel">
+    <div class="controls">
+      <label class="check"><input type="checkbox" id="randPatrol">5일에 한 번은 동전을 던져 순찰할 동네를 정하기</label>
+    </div>
+    <div class="btnrow">
+      <button type="button" class="btn" id="stepBtn">하루 지나기</button>
+      <button type="button" class="btn primary" id="runBtn">15일 한꺼번에</button>
+      <button type="button" class="btn" id="resetBtn">처음부터</button>
+      <span class="val" id="dayVal">0일째</span>
+    </div>
+    <div class="figure" aria-hidden="true"><svg id="town" viewBox="0 0 640 260"></svg></div>
+    <p class="big" id="loopHeadline"></p>
+    <div class="two">
+      <div class="reveal">
+        <span class="lbl" style="font-size:14px;color:var(--ink-soft)">날마다 적은 기록</span>
+        <div class="log" id="log" aria-live="polite"></div>
+      </div>
+      <div class="reveal">
+        <span class="lbl" style="font-size:14px;color:var(--ink-soft)">1,000번 되풀이하면?</span>
+        <button type="button" class="btn" id="mcBtn">두 규칙을 1,000번씩 돌려 보기</button>
+        <div class="stats" id="mcStats"></div>
+      </div>
+    </div>
+  </div>
+  <div class="box teal"><b class="t">읽는 법</b>그림 아래 흐린 숫자는 실제로 일어난 범죄입니다. 두 동네가 비슷합니다. 하지만 AI가 보는 것은 진한 숫자, 곧 기록뿐입니다. 순찰이 A동에만 가니 B동의 범죄는 기록에 남지 않습니다. 예측이 맞아서가 아니라, 예측이 스스로를 맞게 만드는 것입니다. 이 고리를 <b>피드백 루프</b>라고 합니다. 무작위 순찰을 켜면 B동의 모습이 조금씩 데이터에 다시 들어옵니다.</div>
+</section>
+
+
+<footer>
+  <p>이 체험실의 숫자는 책의 예시를 따른 가상의 값입니다. 실제 도시나 실제 사람의 자료가 아닙니다.</p>
+  <div class="links"><a href="https://yeonu69.github.io/AI-literacy-with-movie/ch06/lab/">6장 코랩 실습 열기</a><a href="https://yeonu69.github.io/AI-literacy-with-movie/ch06/t1/">「마이너리티 리포트」 예고편</a><a href="https://yeonu69.github.io/AI-literacy-with-movie/sim/">다른 장 체험실 보기</a></div>
+  <p>「영화관으로 간 AI 리터러시」 웹부록 · AInsight@Movie</p>
+</footer>
+</div>
+<script>
+const NS="http://www.w3.org/2000/svg";
+const INK="#23262E", ALARM="#C2412D", GREY="#E6E3DA", SOFT="#5B5F6B", BLUE="#2F55A4", TEAL="#1E6E6E", AMBER="#9A5B12", OK="#2E7D4F", PAPER="#FBFAF6", VIOLET="#5D6FB3", LINE="#C9C6BB";
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n).toLocaleString("ko-KR");
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function txt(parent,x,y,s,attrs){const t=el("text",Object.assign({x,y,"font-family":"Gaegu, cursive","font-size":18,fill:INK},attrs||{}),parent);t.textContent=s;return t;}
+function sk(parent){return el("g",{style:"filter:url(#rough)"},parent);}
+function rng(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+function seg(id,cb){const g=$(id);g.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{g.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));cb(b.dataset.v,b);}));}
+function stats(id,items){$(id).innerHTML=items.map(([l,v,c])=>`<div class="stat ${c||""}"><span>${l}</span><b>${v}</b></div>`).join("");}
+
+
+(function(){
+const NS="http://www.w3.org/2000/svg";
+const INK="#23262E", ALARM="#C2412D", GREY="#E6E3DA", SOFT="#5B5F6B";
+const fmt=n=>Math.round(n).toLocaleString("ko-KR");
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function txt(parent,x,y,s,attrs){const t=el("text",Object.assign({x,y,"font-family":"Gaegu, cursive","font-size":18,fill:INK},attrs||{}),parent);t.textContent=s;return t;}
+
+/* ---------- 실험 1 ---------- */
+let rate=1000;
+const acc=document.getElementById("acc"), accVal=document.getElementById("accVal");
+const grid=document.getElementById("grid100");
+function drawBase(){
+  const a=parseFloat(acc.value)/100, N=100000, real=N/rate;
+  const tp=real*a, fp=(N-real)*(1-a), alarms=tp+fp, prec=tp/alarms;
+  accVal.textContent=(+acc.value).toFixed(1).replace(/\.0$/,"")+"%";
+  const hits=Math.round(prec*100);
+  grid.innerHTML="";
+  const g=el("g",{style:"filter:url(#rough)"},grid);
+  for(let i=0;i<100;i++){
+    const c=i%20, r=Math.floor(i/20), x=10+c*29.5, y=8+r*48;
+    const isHit=i<hits;
+    el("use",{href:"#person",x,y,width:20,height:30,fill:isHit?ALARM:GREY,stroke:INK,"stroke-width":1.4},g);
+    if(isHit) el("path",{d:`M${x+10} ${y-6} l2 4 4 .5-3 3 .8 4-3.8-2-3.8 2 .8-4-3-3 4-.5z`,fill:"#F2B233",stroke:INK,"stroke-width":.8},g);
+  }
+  const ratio=alarms/tp;
+  let line;
+  if(prec>=0.5) line=`경보 10번 중 약 <em>${Math.round(prec*10)}번</em>이 진짜입니다.`;
+  else if(ratio<1000) line=`경보 <em>${fmt(ratio)}번</em>이 울려야 진짜 한 번을 만납니다.`;
+  else line=`경보 ${fmt(ratio)}번에 진짜는 한 번꼴입니다.`;
+  document.getElementById("baseHeadline").innerHTML=line+` (정밀도 ${(prec*100).toFixed(prec<0.1?1:0)}%)`;
+  document.getElementById("baseStats").innerHTML=
+    `<div class="stat"><span>시민</span><b>${fmt(N)}명</b></div>`+
+    `<div class="stat"><span>실제 위험자</span><b>${fmt(real)}명</b></div>`+
+    `<div class="stat"><span>경보로 잡아낸 위험자</span><b>${fmt(tp)}명</b></div>`+
+    `<div class="stat alarm"><span>헛짚은 평범한 시민</span><b>${fmt(fp)}명</b></div>`+
+    `<div class="stat"><span>울린 경보 전체</span><b>${fmt(alarms)}번</b></div>`;
+}
+document.querySelectorAll("#rateSeg button").forEach(b=>b.addEventListener("click",()=>{
+  rate=+b.dataset.v;document.querySelectorAll("#rateSeg button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));drawBase();}));
+acc.addEventListener("input",drawBase);
+drawBase();
+
+/* ---------- 실험 2 ---------- */
+// 책 [그림 6-9]와 같은 숫자가 나오도록 만든 20명 (기준선 0.5: 정밀도 50%·재현율 75%, 0.7: 67%·50%)
+const people=[[.92,1],[.78,1],[.62,1],[.35,1],[.74,0],[.58,0],[.52,0],[.45,0],[.41,0],[.33,0],[.30,0],[.28,0],[.24,0],[.20,0],[.17,0],[.14,0],[.11,0],[.09,0],[.06,0],[.04,0]]
+  .sort((a,b)=>a[0]-b[0]);
+const th=document.getElementById("th"), showTruth=document.getElementById("showTruth");
+const line=document.getElementById("scoreLine"), seesaw=document.getElementById("seesaw");
+const X=s=>30+s*580;
+let m1=false,m2=false;
+function drawThreshold(){
+  const t=+th.value; document.getElementById("thVal").textContent=t.toFixed(2);
+  let TP=0,FP=0,FN=0,TN=0;
+  line.innerHTML="";
+  const g=el("g",{},line);
+  el("rect",{x:X(t),y:6,width:X(1)-X(t)+10,height:128,fill:"#FBE6E1",opacity:.7},g);
+  const r=el("g",{style:"filter:url(#rough)"},g);
+  el("line",{x1:X(0),y1:130,x2:X(1),y2:130,stroke:INK,"stroke-width":2},r);
+  for(let k=0;k<=10;k++){el("line",{x1:X(k/10),y1:126,x2:X(k/10),y2:134,stroke:INK,"stroke-width":1.5},r);}
+  [0,.5,1].forEach(v=>txt(g,X(v),156,v.toFixed(1),{"text-anchor":"middle","font-family":"IBM Plex Mono, monospace","font-size":13,fill:SOFT}));
+  people.forEach((p,i)=>{
+    const [s,crim]=p, alarm=s>=t, x=X(s)-9, y=i%2?78:40;
+    if(alarm&&crim)TP++; else if(alarm)FP++; else if(crim)FN++; else TN++;
+    const fill=showTruth.checked?(crim?INK:"#fff"):"#D9D6CC";
+    el("use",{href:"#person",x,y,width:18,height:27,fill,stroke:INK,"stroke-width":1.4,style:"filter:url(#rough)"},g);
+    if(alarm){el("circle",{cx:x+9,cy:y-8,r:4.5,fill:ALARM},g);el("path",{d:`M${x+2} ${y-14} l-3 -3 M${x+16} ${y-14} l3 -3`,stroke:ALARM,"stroke-width":1.5},g);}
+    el("line",{x1:X(s),y1:y+28,x2:X(s),y2:128,stroke:"#C9C6BB","stroke-width":1,"stroke-dasharray":"2 3"},g);
+  });
+  el("line",{x1:X(t),y1:4,x2:X(t),y2:140,stroke:ALARM,"stroke-width":2.5,"stroke-dasharray":"7 4"},g);
+  txt(g,Math.min(X(t)+6,560),22,"경보 구역 →",{fill:ALARM,"font-size":17});
+  ["TP","FP","FN","TN"].forEach((k,i)=>document.getElementById("c"+k).textContent=[TP,FP,FN,TN][i]);
+  const P=TP+FP?TP/(TP+FP):null, R=TP/(TP+FN);
+  document.getElementById("barP").style.width=(P===null?0:P*100)+"%";
+  document.getElementById("barR").style.width=R*100+"%";
+  document.getElementById("numP").textContent=P===null?"—":Math.round(P*100)+"%";
+  document.getElementById("numR").textContent=Math.round(R*100)+"%";
+  // 시소
+  seesaw.innerHTML="";
+  const sg=el("g",{style:"filter:url(#rough)"},seesaw);
+  const ang=Math.max(-14,Math.min(14,(FN-FP)*2.2));
+  el("path",{d:"M150 72 L134 108 L166 108 Z",fill:"#ECEFF9",stroke:INK,"stroke-width":2},sg);
+  txt(seesaw,150,104,"가치",{"text-anchor":"middle","font-size":12});
+  const bar=el("g",{transform:`rotate(${ang} 150 72)`},sg);
+  el("line",{x1:30,y1:72,x2:270,y2:72,stroke:INK,"stroke-width":3},bar);
+  el("rect",{x:36,y:38,width:80,height:32,rx:6,fill:"#FFF3DD",stroke:INK,"stroke-width":2},bar);
+  el("rect",{x:184,y:38,width:80,height:32,rx:6,fill:"#FBE6E1",stroke:INK,"stroke-width":2},bar);
+  const lt=txt(bar,76,60,`놓침 ${FN}`,{"text-anchor":"middle"}), rt=txt(bar,224,60,`헛짚음 ${FP}`,{"text-anchor":"middle"});
+  // 임무
+  if(FN===0 && Math.abs(t-0.35)<0.005){m1=true;}
+  if(FP===0 && Math.abs(t-0.75)<0.005){m2=true;}
+  setMission("m1",m1,FN===0,"찾았습니다! 기준선 0.35. 그 대신 헛짚음이 "+countAt(.35).FP+"명입니다.");
+  setMission("m2",m2,FP===0,"찾았습니다! 기준선 0.75. 그 대신 놓침이 "+countAt(.75).FN+"명입니다.");
+}
+function countAt(t){let FP=0,FN=0;people.forEach(([s,c])=>{if(s>=t&&!c)FP++;if(s<t&&c)FN++;});return{FP,FN};}
+function setMission(id,done,close,msg){
+  const box=document.getElementById(id), st=document.getElementById(id+"s");
+  box.classList.toggle("done",done);
+  st.textContent=done?msg:(close?"조건은 맞습니다. 더 "+(id==="m1"?"높은":"낮은")+" 기준선도 되는지 밀어 보십시오.":"아직 못 찾았습니다");
+}
+th.addEventListener("input",drawThreshold);showTruth.addEventListener("change",drawThreshold);
+drawThreshold();
+
+/* ---------- 실험 3 ---------- */
+const town=document.getElementById("town"), logEl=document.getElementById("log");
+const randPatrol=document.getElementById("randPatrol");
+let S;
+function reset(){S={day:0,rec:{A:1,B:0},real:{A:0,B:0},visits:{A:0,B:0},last:null};logEl.innerHTML="<div>0일째 · 시작 · A 기록 1, B 기록 0</div>";drawTown();}
+function step(){
+  if(S.day>=15)return;
+  S.day++;
+  let where, how;
+  const coinDay=randPatrol.checked && S.day%5===0;
+  if(coinDay){where=Math.random()<.5?"A":"B";how="동전";}
+  else if(S.rec.A===S.rec.B){where=Math.random()<.5?"A":"B";how="동점이라 동전";}
+  else {where=S.rec.A>S.rec.B?"A":"B";how="기록 많은 곳";}
+  const crime={A:Math.random()<.5,B:Math.random()<.5};
+  S.real.A+=crime.A;S.real.B+=crime.B;S.visits[where]++;
+  const found=crime[where]; if(found)S.rec[where]++;
+  S.last={where,found};
+  logEl.insertAdjacentHTML("beforeend",`<div>${S.day}일째 · <b>${where}동</b> 순찰(${how}) · ${found?"범죄 발견, 기록 +1":"발견 없음"} · A ${S.rec.A}, B ${S.rec.B}</div>`);
+  logEl.scrollTop=logEl.scrollHeight;
+  drawTown();
+}
+function drawTown(){
+  document.getElementById("dayVal").textContent=S.day+"일째";
+  town.innerHTML="";
+  const g=el("g",{style:"filter:url(#rough)"},town);
+  [["A",40],["B",360]].forEach(([k,x0])=>{
+    el("rect",{x:x0,y:20,width:240,height:150,rx:10,fill:k===S.last?.where?"#ECEFF9":"#fff",stroke:INK,"stroke-width":2},g);
+    // 집 세 채
+    for(let h=0;h<3;h++){const hx=x0+16+h*34;el("path",{d:`M${hx} 70 l13 -14 13 14 v24 h-26 z`,fill:"#F3F1EA",stroke:INK,"stroke-width":1.5},g);}
+    txt(town,x0+16,48,k+"동",{"font-size":26,"font-weight":700});
+    // 기록 서류 더미
+    const n=S.rec[k];
+    for(let i=0;i<Math.min(n,16);i++){el("rect",{x:x0+150+(i%2)*3,y:150-i*7,width:60,height:6,fill:"#fff",stroke:INK,"stroke-width":1.2},g);}
+    txt(town,x0+180,198,`기록 ${n}건`,{"text-anchor":"middle","font-size":22,"font-weight":700});
+    txt(town,x0+180,222,`실제 범죄 ${S.real[k]}건`,{"text-anchor":"middle","font-size":17,fill:"#9A968C"});
+    txt(town,x0+60,198,`순찰 ${S.visits[k]}번`,{"text-anchor":"middle","font-size":17,fill:SOFT});
+  });
+  // 순찰차
+  if(S.last){const cx=S.last.where==="A"?100:420;
+    el("rect",{x:cx,y:118,width:44,height:20,rx:5,fill:"#2F55A4",stroke:INK,"stroke-width":1.5},g);
+    el("circle",{cx:cx+10,cy:140,r:5,fill:INK},g);el("circle",{cx:cx+34,cy:140,r:5,fill:INK},g);
+    el("rect",{x:cx+16,y:112,width:12,height:6,fill:ALARM},g);}
+  // 고리 화살표
+  const hl=document.getElementById("loopHeadline");
+  if(S.day===0) hl.innerHTML="버튼을 눌러 하루씩 지나가 보십시오.";
+  else if(S.day<15) hl.innerHTML=`${S.day}일째입니다. 순찰은 A동 ${S.visits.A}번, B동 ${S.visits.B}번 갔습니다.`;
+  else hl.innerHTML=`15일 뒤 기록은 A동 ${S.rec.A}건, B동 <em>${S.rec.B}건</em>입니다. 실제 범죄는 A동 ${S.real.A}건, B동 ${S.real.B}건이었습니다.`;
+}
+document.getElementById("stepBtn").addEventListener("click",step);
+document.getElementById("runBtn").addEventListener("click",()=>{if(S.day>=15)reset();while(S.day<15)step();});
+document.getElementById("resetBtn").addEventListener("click",reset);
+randPatrol.addEventListener("change",reset);
+function sim(rand){let A=1,B=0,vB=0;for(let d=1;d<=15;d++){let w;if(rand&&d%5===0)w=Math.random()<.5?"A":"B";else if(A===B)w=Math.random()<.5?"A":"B";else w=A>B?"A":"B";if(w==="B")vB++;if(Math.random()<.5){w==="A"?A++:B++;}}return{A,B,vB};}
+document.getElementById("mcBtn").addEventListener("click",()=>{
+  const out=[false,true].map(r=>{let sB=0,sA=0,zero=0;for(let i=0;i<1000;i++){const s=sim(r);sA+=s.A;sB+=s.B;if(s.B===0)zero++;}return{A:sA/1000,B:sB/1000,zero:zero/10};});
+  document.getElementById("mcStats").innerHTML=
+   `<div class="stat"><span>기록대로만 순찰 · B동 평균 기록</span><b>${out[0].B.toFixed(1)}건</b></div>`+
+   `<div class="stat alarm"><span>기록대로만 순찰 · B동 기록이 0건인 경우</span><b>${out[0].zero.toFixed(0)}%</b></div>`+
+   `<div class="stat"><span>무작위 순찰 섞기 · B동 평균 기록</span><b>${out[1].B.toFixed(1)}건</b></div>`+
+   `<div class="stat"><span>무작위 순찰 섞기 · B동 기록이 0건인 경우</span><b>${out[1].zero.toFixed(0)}%</b></div>`+
+   `<div class="stat" style="grid-column:1/-1"><span>두 규칙 모두 B동의 실제 범죄는 평균 7.5건입니다.</span></div>`;
+});
+reset();
+})();
+
+</script>
+</body>
+</html>
