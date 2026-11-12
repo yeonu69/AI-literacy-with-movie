@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>가상 세계 체험실</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="14장 또 하나의 세계 · 가상 세계 체험실. 코딩 없이 브라우저에서 해 보는 체험 시뮬레이터입니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 레이아웃: 연구 노트 한 권. 실험 세 개가 위에서 아래로 이어지고, 각 실험은 '조작판 + 펜 그림 + 읽는 법' 세 칸입니다. 종이 한 가지 모습만 씁니다. */
+:root{
+  --paper:#FBFAF6; --paper-2:#F3F1EA; --ink:#23262E; --ink-soft:#5B5F6B; --line:#C9C6BB;
+  --blue:#2F55A4; --violet:#5D6FB3; --lav:#ECEFF9;
+  --teal:#1E6E6E; --teal-bg:#E3F0F0; --amber:#9A5B12; --amber-bg:#FFF3DD;
+  --alarm:#C2412D; --alarm-bg:#FBE6E1; --ok:#2E7D4F;
+  --f-hand:"Gaegu","Nanum Pen Script","Gowun Dodum",cursive;
+  --f-body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --sketch:255px 12px 225px 14px / 14px 225px 12px 255px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.7;
+  background-image:linear-gradient(var(--paper-2) 1px,transparent 1px);background-size:100% 28px}
+.wrap{max-width:860px;margin:0 auto;padding-block:28px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--f-hand);font-weight:700;line-height:1.2;text-wrap:balance;margin:0}
+p{margin:0}
+.eyebrow{font-size:13px;letter-spacing:.06em;color:var(--violet);font-weight:700}
+header.top{display:flex;flex-direction:column;gap:14px}
+header.top h1{font-size:clamp(34px,6vw,50px);color:var(--blue)}
+header.top .lead{max-width:62ch;color:var(--ink-soft)}
+.film{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:16px 18px;display:flex;gap:16px;align-items:flex-start}
+.film svg{flex:0 0 56px}
+.film div{min-width:0}
+.film b{font-family:var(--f-hand);font-size:22px}
+.film p{font-size:15px;color:var(--ink-soft)}
+nav.jump{display:flex;flex-wrap:wrap;gap:8px}
+nav.jump a{font-family:var(--f-hand);font-size:19px;color:var(--ink);text-decoration:none;border:1.5px dashed var(--ink-soft);border-radius:999px;padding:2px 14px;background:var(--paper)}
+nav.jump a:hover,nav.jump a:focus-visible{border-style:solid;background:var(--lav)}
+section.exp{display:flex;flex-direction:column;gap:18px;scroll-margin-top:12px}
+.exp-head{display:flex;gap:14px;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:8px}
+.exp-head .no{font-family:var(--f-hand);font-size:44px;color:var(--violet);line-height:1}
+.exp-head h2{font-size:clamp(26px,4.4vw,34px)}
+.exp-head small{display:block;font-family:var(--f-body);font-size:13px;color:var(--ink-soft);font-weight:400}
+.q{font-size:17px;max-width:64ch}
+.panel{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:18px;display:flex;flex-direction:column;gap:16px}
+.controls{display:flex;flex-wrap:wrap;gap:18px 28px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ctl label,.ctl .lbl{font-size:14px;color:var(--ink-soft)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;cursor:pointer}
+.seg button,.btn{font-family:var(--f-hand);font-size:19px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);padding:2px 14px;border-radius:var(--sketch);line-height:1.4}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.btn:hover,.seg button:hover{background:var(--lav)}
+.seg button[aria-pressed="true"]:hover{background:var(--ink)}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn.primary:hover{background:#244585}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+input[type=range]{width:min(320px,100%);accent-color:var(--blue)}
+.val{font-family:var(--f-num);font-size:15px;color:var(--ink)}
+.check{display:flex;gap:8px;align-items:center;font-size:15px}
+.check input{width:18px;height:18px;accent-color:var(--blue)}
+.figure{overflow-x:auto}
+.figure svg{display:block;width:100%;height:auto;max-width:100%}
+.big{font-family:var(--f-hand);font-size:clamp(24px,4vw,30px);line-height:1.3}
+.big em{font-style:normal;color:var(--alarm);background:linear-gradient(transparent 60%,var(--alarm-bg) 60%)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{border-top:2px solid var(--ink);padding-top:6px}
+.stat span{display:block;font-size:13px;color:var(--ink-soft)}
+.stat b{font-family:var(--f-num);font-size:20px;font-variant-numeric:tabular-nums;font-weight:500}
+.stat.alarm b{color:var(--alarm)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;color:var(--ink-soft)}
+.legend i{display:inline-block;width:12px;height:12px;border:1.5px solid var(--ink);border-radius:50%;margin-right:6px;vertical-align:-1px}
+.box{border-radius:var(--sketch);padding:14px 16px;font-size:15px;max-width:none}
+.box b.t{display:block;font-family:var(--f-hand);font-size:20px;margin-bottom:2px}
+.box.teal{background:var(--teal-bg)} .box.teal b.t{color:var(--teal)}
+.box.amber{background:var(--amber-bg)} .box.amber b.t{color:var(--amber)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:640px){.two{grid-template-columns:minmax(0,1fr)}}
+table.cm{border-collapse:separate;border-spacing:6px;width:100%;font-size:14px}
+table.cm th{font-weight:400;color:var(--ink-soft);font-size:13px;text-align:center}
+table.cm td{border:2px solid var(--ink);border-radius:var(--sketch);text-align:center;padding:8px 4px;background:var(--paper)}
+table.cm td b{display:block;font-family:var(--f-num);font-size:24px;font-weight:500}
+table.cm td.tp{background:#E4F1E8} table.cm td.fp{background:var(--alarm-bg)} table.cm td.fn{background:var(--amber-bg)}
+.meter{display:flex;flex-direction:column;gap:10px}
+.meter .row{display:grid;grid-template-columns:5.5em minmax(0,1fr) 3.4em;gap:10px;align-items:center;font-size:14px}
+.meter .bar{height:14px;border:1.5px solid var(--ink);border-radius:8px;background:var(--paper);overflow:hidden}
+.meter .bar i{display:block;height:100%;background:var(--blue);transition:width .25s}
+.meter .num{font-family:var(--f-num);text-align:right;font-variant-numeric:tabular-nums}
+.missions{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.mission{border:2px dashed var(--ink-soft);border-radius:var(--sketch);padding:12px 14px;font-size:15px;background:var(--paper)}
+.mission.done{border-style:solid;border-color:var(--ok);background:#EEF6F0}
+.mission b{font-family:var(--f-hand);font-size:20px;display:block}
+.mission .st{font-size:13px;color:var(--ink-soft)}
+.mission.done .st{color:var(--ok);font-weight:700}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.log{font-family:var(--f-num);font-size:13px;line-height:1.6;max-height:180px;overflow:auto;background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--ink-soft)}
+.log div b{color:var(--ink);font-weight:500}
+.reveal{display:flex;flex-direction:column;gap:6px}
+footer{border-top:2px solid var(--ink);padding-top:14px;font-size:14px;color:var(--ink-soft);display:flex;flex-direction:column;gap:8px}
+footer a{color:var(--blue)}
+.links{display:flex;flex-wrap:wrap;gap:8px 18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+canvas.pix{display:block;image-rendering:pixelated;border:2px solid var(--ink);border-radius:6px;background:#fff;max-width:100%;height:auto;touch-action:none}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.row>*{min-width:0}
+.cap{font-size:13px;color:var(--ink-soft)}
+.mono{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+textarea,input[type=text]{font:inherit;font-size:16px;border:2px solid var(--ink);border-radius:8px;padding:8px 10px;background:var(--paper);color:var(--ink);width:100%}
+select{font:inherit;font-size:15px;border:2px solid var(--ink);border-radius:8px;padding:4px 8px;background:var(--paper);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--f-num);font-size:14px;border:1.5px solid var(--ink);border-radius:6px;padding:2px 8px;background:var(--paper)}
+.tag{display:inline-block;font-size:12px;border-radius:999px;padding:0 8px;border:1.5px solid currentColor}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="2.2"/></filter>
+    <symbol id="person" viewBox="0 0 20 30"><circle cx="10" cy="6.5" r="4.6"/><path d="M2.5 29 C2.5 18 5 13.5 10 13.5 S17.5 18 17.5 29 Z"/></symbol>
+  </defs>
+</svg>
+<div class="wrap">
+<header class="top">
+  <p class="eyebrow">영화관으로 간 AI 리터러시 · 14장 또 하나의 세계 · 체험실</p>
+  <h1>눈을 속이고, 세계를 복사하기</h1>
+  <p class="lead">코드는 없습니다. 막대를 밀고 버튼을 눌러 보기만 하면 됩니다. 가상 현실에서 화면이 늦게 따라오면 무슨 일이 생기는지, 디지털 트윈으로 미리 실험하는 방법을 봅니다.</p>
+  <div class="film">
+    <svg viewBox="0 0 56 56" aria-hidden="true" style="filter:url(#rough)"><rect x="4" y="10" width="48" height="36" rx="3" fill="none" stroke="#23262E" stroke-width="2.4"/><g fill="#23262E"><rect x="8" y="14" width="5" height="4"/><rect x="8" y="24" width="5" height="4"/><rect x="8" y="34" width="5" height="4"/><rect x="43" y="14" width="5" height="4"/><rect x="43" y="24" width="5" height="4"/><rect x="43" y="34" width="5" height="4"/></g><circle cx="28" cy="28" r="7" fill="none" stroke="#C2412D" stroke-width="2.4"/><circle cx="28" cy="28" r="2.2" fill="#C2412D"/></svg>
+    <div>
+      <b>「레디 플레이어 원」(2018)</b>
+      <p>2045년, 트레일러를 층층이 쌓은 동네에 사는 소년 웨이드는 고글을 쓰고 가상 세계 '오아시스'로 들어갑니다. 그곳에서 사람들은 학교에 다니고, 일하고, 친구를 사귑니다.</p>
+    </div>
+  </div>
+  <nav class="jump" aria-label="실험 바로 가기"><a href="#latency">실험 1 · 고개를 돌리면 세상이 따라올까</a><a href="#twin">실험 2 · 우리 교실의 디지털 트윈</a></nav>
+</header>
+<section class="exp" id="latency">
+  <div class="exp-head"><span class="no">1</span><h2>고개를 돌리면 세상이 따라올까<small>책 14장 3-1, 3-2절 · 가상 현실, 추적과 지연</small></h2></div>
+  <p class="q">VR 고글은 고개 방향을 재서 그에 맞는 화면을 그립니다. 그런데 재고, 계산하고, 그리는 데 시간이 걸립니다. 지연 시간을 바꾸고 아래 칸을 좌우로 문지르거나 '고개 흔들기'를 눌러 보십시오. 빨간 선이 내 머리 방향, 화면 가운데 검은 선이 고글이 보여 주는 방향입니다.</p>
+  <div class="panel">
+    <div class="controls">
+      <div class="ctl"><label for="lat">지연 시간 <span class="val" id="latVal"></span></label><input type="range" id="lat" min="0" max="300" step="5" value="20"></div>
+      <button type="button" class="btn" id="shake">고개 흔들기</button>
+    </div>
+    <canvas id="vr" width="640" height="220" style="width:100%;border:2px solid #23262E;border-radius:12px;touch-action:none;cursor:ew-resize;display:block"></canvas>
+    <p class="big" id="latHead"></p>
+  </div>
+  <div class="box teal"><b class="t">읽는 법</b>눈은 화면이 늦게 따라온다고 말하고, 귀 속 평형 기관은 고개가 이미 돌았다고 말합니다. 두 감각이 어긋나면 멀미가 납니다. 업계에서는 지연 시간이 대략 20밀리초(50분의 1초)를 넘지 않게 하려고 애씁니다. 그래서 VR 기기는 머리가 어디로 갈지 미리 예측해서 그리기도 합니다.</div>
+</section>
+
+<section class="exp" id="twin">
+  <div class="exp-head"><span class="no">2</span><h2>우리 교실의 디지털 트윈<small>책 14장 3-6절 · 디지털 트윈</small></h2></div>
+  <p class="q">교실 센서가 이산화탄소(CO₂)와 온도를 보내고, 컴퓨터 속 쌍둥이 교실은 그 값을 받아 함께 움직입니다. 쌍둥이 교실에서는 진짜로 해 보기 전에 "창문을 언제 열면 좋을까?"를 미리 실험할 수 있습니다. 계획을 바꿔 50분 수업을 미리 돌려 보십시오.</p>
+  <div class="panel">
+    <div class="controls">
+      <div class="ctl"><label for="ppl">학생 수 <span class="val" id="pplVal"></span></label><input type="range" id="ppl" min="5" max="40" value="30"></div>
+      <div class="ctl"><span class="lbl" id="seaLbl">계절</span><div class="seg" role="group" aria-labelledby="seaLbl" id="seaSeg"><button type="button" data-v="summer" aria-pressed="true">여름 (밖 30℃)</button><button type="button" data-v="winter">겨울 (밖 2℃)</button></div></div>
+    </div>
+    <div class="controls">
+      <div class="ctl"><span class="lbl" id="winLbl">바꾼 계획: 창문 여는 때</span><div class="seg" role="group" aria-labelledby="winLbl" id="winSeg"><button type="button" data-v="-1">열지 않음</button><button type="button" data-v="0">처음부터</button><button type="button" data-v="20" aria-pressed="true">20분에</button><button type="button" data-v="40">40분에</button></div></div>
+      <label class="check"><input type="checkbox" id="ac">바꾼 계획: 냉난방기 켜기</label>
+      <button type="button" class="btn primary" id="runTwin">실제 수업 진행하기 (원래 계획)</button>
+    </div>
+    <div class="two">
+      <div class="figure" aria-hidden="true"><svg id="co2" viewBox="0 0 320 220"></svg></div>
+      <div class="figure" aria-hidden="true"><svg id="temp" viewBox="0 0 320 220"></svg></div>
+    </div>
+    <div class="legend"><span><i style="background:#9A968C"></i>원래 계획 (창문 닫음, 냉난방기 끔)</span><span><i style="background:#2F55A4"></i>바꾼 계획</span><span><i style="background:#C2412D"></i>실제 교실 센서 값</span></div>
+    <p class="big" id="twinHead"></p>
+  </div>
+  <div class="box amber"><b class="t">생각해 볼 것</b>1970년 아폴로 13호 사고 때 NASA는 지상의 쌍둥이 모의 장치로 구조 방법을 먼저 시험했습니다. 오늘날에는 공장, 다리, 도시, 심장까지 디지털 트윈을 만듭니다. 이 체험의 교실 모형은 원리를 보여 주는 단순한 계산이고, CO₂ 1,000ppm 선은 환기 권장 기준으로 그었습니다.</div>
+</section>
+
+<footer>
+  <p>이 체험실의 숫자는 원리를 보여 주려고 만든 가상의 값입니다.</p>
+  <div class="links"><a href="https://yeonu69.github.io/AI-literacy-with-movie/ch14/lab/">14장 코랩 실습 열기</a><a href="https://yeonu69.github.io/AI-literacy-with-movie/ch14/t1/">「레디 플레이어 원」 예고편</a><a href="https://yeonu69.github.io/AI-literacy-with-movie/sim/">다른 장 체험실 보기</a></div>
+  <p>「영화관으로 간 AI 리터러시」 웹부록 · AInsight@Movie</p>
+</footer>
+</div>
+<script>
+const NS="http://www.w3.org/2000/svg";
+const INK="#23262E", ALARM="#C2412D", GREY="#E6E3DA", SOFT="#5B5F6B", BLUE="#2F55A4", TEAL="#1E6E6E", AMBER="#9A5B12", OK="#2E7D4F", PAPER="#FBFAF6", VIOLET="#5D6FB3", LINE="#C9C6BB";
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n).toLocaleString("ko-KR");
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function txt(parent,x,y,s,attrs){const t=el("text",Object.assign({x,y,"font-family":"Gaegu, cursive","font-size":18,fill:INK},attrs||{}),parent);t.textContent=s;return t;}
+function sk(parent){return el("g",{style:"filter:url(#rough)"},parent);}
+function rng(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+function seg(id,cb){const g=$(id);g.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{g.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));cb(b.dataset.v,b);}));}
+function stats(id,items){$(id).innerHTML=items.map(([l,v,c])=>`<div class="stat ${c||""}"><span>${l}</span><b>${v}</b></div>`).join("");}
+
+(function(){
+/* 실험 1 */
+const cv=$("vr"),x=cv.getContext("2d");let head=0,hist=[],shakeT=null;
+function now(){return performance.now();}
+function setHead(a){head=Math.max(-90,Math.min(90,a));hist.push([now(),head]);while(hist.length&&hist[0][0]<now()-1000)hist.shift();}
+function shown(){const lat=+$("lat").value;const t=now()-lat;let v=hist.length?hist[0][1]:0;for(const[tt,a]of hist){if(tt<=t)v=a;else break;}return v;}
+function scene(off){x.fillStyle="#EEF4FB";x.fillRect(0,0,640,220);x.fillStyle="#D9D6CC";x.fillRect(0,160,640,60);
+  x.strokeStyle="#23262E";x.lineWidth=2;
+  for(let k=-6;k<=6;k++){const px=320+(k*60-off)*4;if(px<-80||px>720)continue;
+    if(k%3===0){x.fillStyle="#fff";x.fillRect(px-30,100,60,60);x.strokeRect(px-30,100,60,60);x.beginPath();x.moveTo(px-36,100);x.lineTo(px,70);x.lineTo(px+36,100);x.stroke();}
+    else{x.fillStyle="#9DC3A5";x.beginPath();x.arc(px,110,24,0,7);x.fill();x.stroke();x.fillStyle="#7A5B3A";x.fillRect(px-4,134,8,26);}
+    x.fillStyle="#5B5F6B";x.font="13px 'IBM Plex Mono', monospace";x.fillText((k*60)+"°",px-12,200);}}
+function frame(){if(shakeT!=null){setHead(70*Math.sin((now()-shakeT)/400));if(now()-shakeT>4000)shakeT=null;}else setHead(head);
+  const sh=shown();scene(sh);
+  x.strokeStyle="#23262E";x.lineWidth=3;x.beginPath();x.moveTo(320,10);x.lineTo(320,210);x.stroke();
+  const hx=320+(head-sh)*4;x.strokeStyle="#C2412D";x.setLineDash([8,6]);x.beginPath();x.moveTo(hx,10);x.lineTo(hx,210);x.stroke();x.setLineDash([]);
+  const gap=Math.abs(head-sh);x.fillStyle="#23262E";x.font="20px Gaegu, cursive";x.fillText(`머리 ${head.toFixed(0)}° · 화면 ${sh.toFixed(0)}° · 어긋남 ${gap.toFixed(0)}°`,12,28);
+  requestAnimationFrame(frame);}
+let dragging=false,lastX=0;
+cv.addEventListener("pointerdown",e=>{dragging=true;lastX=e.clientX;shakeT=null;cv.setPointerCapture(e.pointerId);});
+cv.addEventListener("pointermove",e=>{if(!dragging)return;setHead(head+(e.clientX-lastX)*0.4);lastX=e.clientX;});
+cv.addEventListener("pointerup",()=>dragging=false);
+$("shake").addEventListener("click",()=>{shakeT=now();});
+function latText(){const l=+$("lat").value;$("latVal").textContent=l+"밀리초";
+  $("latHead").innerHTML=l<=20?"지연이 짧습니다. 화면이 머리를 바로 따라옵니다.":l<=60?`화면이 살짝 늦습니다. <em>어색함</em>을 느끼는 사람이 생깁니다.`:`화면이 머리를 한참 늦게 따라옵니다. <em>멀미</em>가 나기 쉽습니다.`;}
+$("lat").addEventListener("input",latText);latText();requestAnimationFrame(frame);
+
+/* 실험 2: 교실 트윈 */
+let season="summer",win=20,realT=null,real=[];
+function model(p,{open,ac},noise){const out=[];let C=450,T=season==="summer"?26:19;const outT=season==="summer"?30:2;const rr=rng(5);
+  for(let m=0;m<=50;m++){const isOpen=open>=0&&m>=open;const vent=isOpen?0.12:0.012;C+=p*1.5-vent*(C-420);T+=p*0.0025+(isOpen?0.05*(outT-T):0.004*(outT-T))+(ac?(season==="summer"?-0.12:0.12)*(T>(season==="summer"?24:21)===(season==="summer")?1:0):0);
+    out.push([C+(noise?gauss(rr)*40:0),T+(noise?gauss(rr)*0.15:0)]);}return out;}
+function plot(id,idx,lo,hi,unit,thr,base,plan){const s=$(id);s.innerHTML="";const X=m=>40+m*5.4,Y=v=>190-(v-lo)/(hi-lo)*165;
+  el("line",{x1:40,y1:190,x2:310,y2:190,stroke:INK,"stroke-width":1.5},s);el("line",{x1:40,y1:20,x2:40,y2:190,stroke:INK,"stroke-width":1.5},s);
+  [0,25,50].forEach(m=>txt(s,X(m),208,m+"분",{"text-anchor":"middle","font-size":12,fill:SOFT,"font-family":"IBM Plex Mono, monospace"}));
+  [lo,(lo+hi)/2,hi].forEach(v=>txt(s,36,Y(v)+4,String(Math.round(v)),{"text-anchor":"end","font-size":11,fill:SOFT,"font-family":"IBM Plex Mono, monospace"}));
+  txt(s,44,16,unit,{"font-size":15});
+  if(thr!=null){el("line",{x1:40,y1:Y(thr),x2:310,y2:Y(thr),stroke:ALARM,"stroke-dasharray":"6 4"},s);txt(s,308,Y(thr)-4,"1,000ppm",{"text-anchor":"end","font-size":12,fill:ALARM});}
+  const line=(arr,c,w)=>{let d="";arr.forEach((v,m)=>d+=(m?"L":"M")+X(m)+" "+Y(Math.max(lo,Math.min(hi,v[idx]))));el("path",{d,fill:"none",stroke:c,"stroke-width":w},s);};
+  line(base,"#9A968C",2.5);line(plan,BLUE,3);
+  real.forEach((v,m)=>el("circle",{cx:X(m),cy:Y(Math.max(lo,Math.min(hi,v[idx]))),r:2.6,fill:ALARM},s));}
+function draw(){const p=+$("ppl").value;$("pplVal").textContent=p+"명";
+  const base=model(p,{open:-1,ac:false}),plan=model(p,{open:win,ac:$("ac").checked});
+  plot("co2",0,400,3000,"CO₂ (ppm)",1000,base,plan);plot("temp",1,season==="summer"?20:0,season==="summer"?34:26,"온도 (℃)",null,base,plan);
+  const over=a=>a.filter(v=>v[0]>1000).length;
+  $("twinHead").innerHTML=`원래 계획이면 50분 중 <em>${over(base)}분</em> 동안 CO₂가 1,000ppm을 넘습니다. 바꾼 계획이면 ${over(plan)}분이고, 수업이 끝날 때 온도는 ${plan[50][1].toFixed(1)}℃입니다.`+(real.length?` 실제 센서 값(빨간 점)이 쌍둥이의 예측(회색 선)을 잘 따라가는지 보십시오.`:"");}
+seg("seaSeg",v=>{season=v;real=[];draw();});seg("winSeg",v=>{win=+v;draw();});
+["ppl","ac"].forEach(id=>$(id).addEventListener(id==="ac"?"change":"input",()=>{real=[];draw();}));
+$("runTwin").addEventListener("click",()=>{if(realT)clearInterval(realT);real=[];const truth=model(+$("ppl").value,{open:-1,ac:false},true);let m=0;
+  realT=setInterval(()=>{real.push(truth[m]);m++;draw();if(m>50){clearInterval(realT);realT=null;}},80);});
+draw();
+})();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>우주 신호 체험실</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="16장 우주를 읽는 AI · 우주 신호 체험실. 코딩 없이 브라우저에서 해 보는 체험 시뮬레이터입니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 레이아웃: 연구 노트 한 권. 실험 세 개가 위에서 아래로 이어지고, 각 실험은 '조작판 + 펜 그림 + 읽는 법' 세 칸입니다. 종이 한 가지 모습만 씁니다. */
+:root{
+  --paper:#FBFAF6; --paper-2:#F3F1EA; --ink:#23262E; --ink-soft:#5B5F6B; --line:#C9C6BB;
+  --blue:#2F55A4; --violet:#5D6FB3; --lav:#ECEFF9;
+  --teal:#1E6E6E; --teal-bg:#E3F0F0; --amber:#9A5B12; --amber-bg:#FFF3DD;
+  --alarm:#C2412D; --alarm-bg:#FBE6E1; --ok:#2E7D4F;
+  --f-hand:"Gaegu","Nanum Pen Script","Gowun Dodum",cursive;
+  --f-body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --sketch:255px 12px 225px 14px / 14px 225px 12px 255px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.7;
+  background-image:linear-gradient(var(--paper-2) 1px,transparent 1px);background-size:100% 28px}
+.wrap{max-width:860px;margin:0 auto;padding-block:28px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--f-hand);font-weight:700;line-height:1.2;text-wrap:balance;margin:0}
+p{margin:0}
+.eyebrow{font-size:13px;letter-spacing:.06em;color:var(--violet);font-weight:700}
+header.top{display:flex;flex-direction:column;gap:14px}
+header.top h1{font-size:clamp(34px,6vw,50px);color:var(--blue)}
+header.top .lead{max-width:62ch;color:var(--ink-soft)}
+.film{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:16px 18px;display:flex;gap:16px;align-items:flex-start}
+.film svg{flex:0 0 56px}
+.film div{min-width:0}
+.film b{font-family:var(--f-hand);font-size:22px}
+.film p{font-size:15px;color:var(--ink-soft)}
+nav.jump{display:flex;flex-wrap:wrap;gap:8px}
+nav.jump a{font-family:var(--f-hand);font-size:19px;color:var(--ink);text-decoration:none;border:1.5px dashed var(--ink-soft);border-radius:999px;padding:2px 14px;background:var(--paper)}
+nav.jump a:hover,nav.jump a:focus-visible{border-style:solid;background:var(--lav)}
+section.exp{display:flex;flex-direction:column;gap:18px;scroll-margin-top:12px}
+.exp-head{display:flex;gap:14px;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:8px}
+.exp-head .no{font-family:var(--f-hand);font-size:44px;color:var(--violet);line-height:1}
+.exp-head h2{font-size:clamp(26px,4.4vw,34px)}
+.exp-head small{display:block;font-family:var(--f-body);font-size:13px;color:var(--ink-soft);font-weight:400}
+.q{font-size:17px;max-width:64ch}
+.panel{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:18px;display:flex;flex-direction:column;gap:16px}
+.controls{display:flex;flex-wrap:wrap;gap:18px 28px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ctl label,.ctl .lbl{font-size:14px;color:var(--ink-soft)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;cursor:pointer}
+.seg button,.btn{font-family:var(--f-hand);font-size:19px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);padding:2px 14px;border-radius:var(--sketch);line-height:1.4}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.btn:hover,.seg button:hover{background:var(--lav)}
+.seg button[aria-pressed="true"]:hover{background:var(--ink)}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn.primary:hover{background:#244585}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+input[type=range]{width:min(320px,100%);accent-color:var(--blue)}
+.val{font-family:var(--f-num);font-size:15px;color:var(--ink)}
+.check{display:flex;gap:8px;align-items:center;font-size:15px}
+.check input{width:18px;height:18px;accent-color:var(--blue)}
+.figure{overflow-x:auto}
+.figure svg{display:block;width:100%;height:auto;max-width:100%}
+.big{font-family:var(--f-hand);font-size:clamp(24px,4vw,30px);line-height:1.3}
+.big em{font-style:normal;color:var(--alarm);background:linear-gradient(transparent 60%,var(--alarm-bg) 60%)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{border-top:2px solid var(--ink);padding-top:6px}
+.stat span{display:block;font-size:13px;color:var(--ink-soft)}
+.stat b{font-family:var(--f-num);font-size:20px;font-variant-numeric:tabular-nums;font-weight:500}
+.stat.alarm b{color:var(--alarm)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;color:var(--ink-soft)}
+.legend i{display:inline-block;width:12px;height:12px;border:1.5px solid var(--ink);border-radius:50%;margin-right:6px;vertical-align:-1px}
+.box{border-radius:var(--sketch);padding:14px 16px;font-size:15px;max-width:none}
+.box b.t{display:block;font-family:var(--f-hand);font-size:20px;margin-bottom:2px}
+.box.teal{background:var(--teal-bg)} .box.teal b.t{color:var(--teal)}
+.box.amber{background:var(--amber-bg)} .box.amber b.t{color:var(--amber)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:640px){.two{grid-template-columns:minmax(0,1fr)}}
+table.cm{border-collapse:separate;border-spacing:6px;width:100%;font-size:14px}
+table.cm th{font-weight:400;color:var(--ink-soft);font-size:13px;text-align:center}
+table.cm td{border:2px solid var(--ink);border-radius:var(--sketch);text-align:center;padding:8px 4px;background:var(--paper)}
+table.cm td b{display:block;font-family:var(--f-num);font-size:24px;font-weight:500}
+table.cm td.tp{background:#E4F1E8} table.cm td.fp{background:var(--alarm-bg)} table.cm td.fn{background:var(--amber-bg)}
+.meter{display:flex;flex-direction:column;gap:10px}
+.meter .row{display:grid;grid-template-columns:5.5em minmax(0,1fr) 3.4em;gap:10px;align-items:center;font-size:14px}
+.meter .bar{height:14px;border:1.5px solid var(--ink);border-radius:8px;background:var(--paper);overflow:hidden}
+.meter .bar i{display:block;height:100%;background:var(--blue);transition:width .25s}
+.meter .num{font-family:var(--f-num);text-align:right;font-variant-numeric:tabular-nums}
+.missions{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.mission{border:2px dashed var(--ink-soft);border-radius:var(--sketch);padding:12px 14px;font-size:15px;background:var(--paper)}
+.mission.done{border-style:solid;border-color:var(--ok);background:#EEF6F0}
+.mission b{font-family:var(--f-hand);font-size:20px;display:block}
+.mission .st{font-size:13px;color:var(--ink-soft)}
+.mission.done .st{color:var(--ok);font-weight:700}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.log{font-family:var(--f-num);font-size:13px;line-height:1.6;max-height:180px;overflow:auto;background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--ink-soft)}
+.log div b{color:var(--ink);font-weight:500}
+.reveal{display:flex;flex-direction:column;gap:6px}
+footer{border-top:2px solid var(--ink);padding-top:14px;font-size:14px;color:var(--ink-soft);display:flex;flex-direction:column;gap:8px}
+footer a{color:var(--blue)}
+.links{display:flex;flex-wrap:wrap;gap:8px 18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+canvas.pix{display:block;image-rendering:pixelated;border:2px solid var(--ink);border-radius:6px;background:#fff;max-width:100%;height:auto;touch-action:none}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.row>*{min-width:0}
+.cap{font-size:13px;color:var(--ink-soft)}
+.mono{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+textarea,input[type=text]{font:inherit;font-size:16px;border:2px solid var(--ink);border-radius:8px;padding:8px 10px;background:var(--paper);color:var(--ink);width:100%}
+select{font:inherit;font-size:15px;border:2px solid var(--ink);border-radius:8px;padding:4px 8px;background:var(--paper);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--f-num);font-size:14px;border:1.5px solid var(--ink);border-radius:6px;padding:2px 8px;background:var(--paper)}
+.tag{display:inline-block;font-size:12px;border-radius:999px;padding:0 8px;border:1.5px solid currentColor}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="2.2"/></filter>
+    <symbol id="person" viewBox="0 0 20 30"><circle cx="10" cy="6.5" r="4.6"/><path d="M2.5 29 C2.5 18 5 13.5 10 13.5 S17.5 18 17.5 29 Z"/></symbol>
+  </defs>
+</svg>
+<div class="wrap">
+<header class="top">
+  <p class="eyebrow">영화관으로 간 AI 리터러시 · 16장 우주를 읽는 AI · 체험실</p>
+  <h1>잡음 속에서 신호 찾기</h1>
+  <p class="lead">코드는 없습니다. 막대를 밀고 버튼을 눌러 보기만 하면 됩니다. 잡음에 묻힌 신호를 꺼내는 방법과, 별빛이 살짝 어두워지는 순간에서 행성을 찾는 방법을 겪어 봅니다.</p>
+  <div class="film">
+    <svg viewBox="0 0 56 56" aria-hidden="true" style="filter:url(#rough)"><rect x="4" y="10" width="48" height="36" rx="3" fill="none" stroke="#23262E" stroke-width="2.4"/><g fill="#23262E"><rect x="8" y="14" width="5" height="4"/><rect x="8" y="24" width="5" height="4"/><rect x="8" y="34" width="5" height="4"/><rect x="43" y="14" width="5" height="4"/><rect x="43" y="24" width="5" height="4"/><rect x="43" y="34" width="5" height="4"/></g><circle cx="28" cy="28" r="7" fill="none" stroke="#C2412D" stroke-width="2.4"/><circle cx="28" cy="28" r="2.2" fill="#C2412D"/></svg>
+    <div>
+      <b>「콘택트」(1997)</b>
+      <p>천문학자 엘리는 매일 헤드폰으로 우주의 잡음을 듣습니다. 어느 날 규칙적으로 끊어지는 강한 신호가 들립니다. 박자를 세어 보니 2, 3, 5, 7… 소수입니다. 자연은 소수를 세지 않습니다.</p>
+    </div>
+  </div>
+  <nav class="jump" aria-label="실험 바로 가기"><a href="#signal">실험 1 · 잡음 속 소수 신호</a><a href="#transit">실험 2 · 별빛이 어두워지는 순간</a></nav>
+</header>
+<section class="exp" id="signal">
+  <div class="exp-head"><span class="no">1</span><h2>잡음 속 소수 신호<small>책 16장 1절 오프닝, 3-9절 · 잡음 속 신호</small></h2></div>
+  <p class="q">전파 망원경에 '쏴아' 하는 잡음과 함께 어떤 신호가 섞여 들어옵니다. 신호가 약하면 잡음에 묻혀 보이지 않습니다. 같은 신호를 여러 번 받아 평균을 내 보십시오. 잡음은 서로 지워지고 신호만 남습니다. 박자를 세어 보면 무엇이 보일까요?</p>
+  <div class="panel">
+    <div class="controls">
+      <div class="ctl"><label for="snr">신호 세기 <span class="val" id="snrVal"></span></label><input type="range" id="snr" min="0.1" max="2" step="0.05" value="0.35"></div>
+      <div class="ctl"><label for="avg">여러 번 받아 평균 내기 <span class="val" id="avgVal"></span></label><input type="range" id="avg" min="0" max="7" value="0"></div>
+    </div>
+    <canvas id="wave" width="640" height="180" style="width:100%;border:2px solid #23262E;border-radius:8px;background:#11151C;display:block"></canvas>
+    <div class="reveal"><span class="cap">기계가 센 박자 (기준선을 넘는 펄스 묶음)</span><div class="chips" id="beats"></div></div>
+    <p class="big" id="sigHead"></p>
+  </div>
+  <div class="box teal"><b class="t">읽는 법</b>평균을 n번 내면 잡음은 √n분의 1로 줄어듭니다. 16번 받으면 잡음이 4분의 1이 됩니다. 2, 3, 5, 7, 11… 같은 소수는 별이나 펄서 같은 자연 현상이 만들기 어렵습니다. 그래서 영화 속 엘리 팀은 이것을 '누군가 보낸 신호'라고 생각했습니다. 중력파와 블랙홀 사진도 이렇게 잡음 속에서 아주 약한 신호를 꺼낸 결과입니다.</div>
+</section>
+
+<section class="exp" id="transit">
+  <div class="exp-head"><span class="no">2</span><h2>별빛이 어두워지는 순간<small>책 16장 3-8절 · 통과법으로 외계행성 찾기</small></h2></div>
+  <p class="q">행성이 별 앞을 지나가면 별빛이 아주 조금 어두워집니다. 아래는 60일 동안 잰 별의 밝기입니다. 행성은 몇 일마다 지나갈까요? '접는 주기' 막대를 움직여 그래프를 그 주기로 접어 보십시오. 주기가 맞으면 움푹 팬 자리가 한곳에 모입니다.</p>
+  <div class="panel">
+    <div class="controls">
+      <div class="ctl"><label for="psize">행성 크기 <span class="val" id="psizeVal"></span></label><input type="range" id="psize" min="1" max="12" step="0.5" value="8"></div>
+      <div class="ctl"><label for="tnoise">측정 잡음 <span class="val" id="tnoiseVal"></span></label><input type="range" id="tnoise" min="0.02" max="0.6" step="0.02" value="0.2"></div>
+      <button type="button" class="btn" id="newStar">다른 별 보기</button>
+    </div>
+    <div class="figure" aria-hidden="true"><svg id="lc" viewBox="0 0 640 190"></svg></div>
+    <div class="ctl"><label for="fold">접는 주기 <span class="val" id="foldVal"></span></label><input type="range" id="fold" min="2" max="15" step="0.05" value="6" style="width:100%"></div>
+    <div class="figure" aria-hidden="true"><svg id="folded" viewBox="0 0 640 190"></svg></div>
+    <p class="big" id="trHead"></p>
+  </div>
+  <div class="box amber"><b class="t">생각해 볼 것</b>지구만 한 행성은 해 같은 별의 빛을 1만분의 1쯤만 가립니다. 행성 크기를 1(지구)로 줄이면 한 번의 어두워짐은 잡음에 묻힙니다. 그래도 여러 번을 접어 겹치면 드러날 수 있습니다. 케플러와 TESS 망원경이 모은 수십만 개 별의 빛 곡선에서 AI가 이런 작은 움푹함을 찾아 외계행성 후보를 골라냅니다.</div>
+</section>
+
+<footer>
+  <p>이 체험실의 숫자는 원리를 보여 주려고 만든 가상의 값입니다.</p>
+  <div class="links"><a href="https://yeonu69.github.io/AI-literacy-with-movie/sim/">다른 장 체험실 보기</a></div>
+  <p>「영화관으로 간 AI 리터러시」 웹부록 · AInsight@Movie</p>
+</footer>
+</div>
+<script>
+const NS="http://www.w3.org/2000/svg";
+const INK="#23262E", ALARM="#C2412D", GREY="#E6E3DA", SOFT="#5B5F6B", BLUE="#2F55A4", TEAL="#1E6E6E", AMBER="#9A5B12", OK="#2E7D4F", PAPER="#FBFAF6", VIOLET="#5D6FB3", LINE="#C9C6BB";
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n).toLocaleString("ko-KR");
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function txt(parent,x,y,s,attrs){const t=el("text",Object.assign({x,y,"font-family":"Gaegu, cursive","font-size":18,fill:INK},attrs||{}),parent);t.textContent=s;return t;}
+function sk(parent){return el("g",{style:"filter:url(#rough)"},parent);}
+function rng(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+function seg(id,cb){const g=$(id);g.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{g.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));cb(b.dataset.v,b);}));}
+function stats(id,items){$(id).innerHTML=items.map(([l,v,c])=>`<div class="stat ${c||""}"><span>${l}</span><b>${v}</b></div>`).join("");}
+
+(function(){
+/* 실험 1 */
+const PR=[2,3,5,7,11,13];const L=640;const sig=new Float32Array(L);
+(function(){let x=12;PR.forEach(p=>{for(let k=0;k<p;k++){for(let j=0;j<4;j++)sig[x+j]=1;x+=8;}x+=24;});})();
+function drawSig(){const snr=+$("snr").value,n=Math.pow(2,+$("avg").value);$("snrVal").textContent=snr.toFixed(2);$("avgVal").textContent=n+"번";
+  const r=rng(16);const y=new Float32Array(L);for(let i=0;i<L;i++){let s=0;for(let k=0;k<n;k++)s+=gauss(r);y[i]=snr*sig[i]+s/n*0.5;}
+  const cv=$("wave"),x=cv.getContext("2d");x.fillStyle="#11151C";x.fillRect(0,0,640,180);x.strokeStyle="#7FD1A8";x.lineWidth=1.2;x.beginPath();
+  for(let i=0;i<L;i++){const py=130-y[i]*60;i?x.lineTo(i,py):x.moveTo(i,py);}x.stroke();
+  const th=snr/2;x.strokeStyle="rgba(242,178,51,.7)";x.setLineDash([5,4]);x.beginPath();x.moveTo(0,130-th*60);x.lineTo(640,130-th*60);x.stroke();x.setLineDash([]);
+  x.fillStyle="#C9D2DC";x.font="14px 'Gowun Dodum', sans-serif";x.fillText("노란 점선: 펄스로 셀 기준선",8,18);
+  // 박자 세기
+  const sm=y.map((v,i)=>((y[i-1]??v)+v+(y[i+1]??v))/3);const on=[];for(let i=0;i<L;i++)on.push(sm[i]>th);const pulses=[];let inP=false;for(let i=0;i<L;i++){if(on[i]&&!inP){pulses.push(i);inP=true;}if(!on[i]&&i>0&&!on[i-1])inP=false;if(!on[i])inP=false;}
+  // 가까운 펄스(간격 10 이하)는 하나의 묶음, 먼 간격은 새 묶음
+  const merged=[];pulses.forEach(p=>{if(!merged.length||p-merged[merged.length-1]>2)merged.push(p);});
+  const groups=[];let cnt=0,last=-99;merged.forEach(p=>{if(p-last>14&&cnt){groups.push(cnt);cnt=0;}cnt++;last=p;});if(cnt)groups.push(cnt);
+  $("beats").innerHTML=groups.length>14?`<span class="chip">${groups.length}묶음 · 잡음이 너무 많아 셀 수 없습니다</span>`:groups.map(g=>`<span class="chip">${g}</span>`).join("")||`<span class="chip">아무것도 못 셌습니다</span>`;
+  const ok=groups.length===6&&groups.every((g,i)=>g===PR[i]);
+  $("sigHead").innerHTML=ok?`박자가 <em>2, 3, 5, 7, 11, 13</em>입니다. 소수입니다!`:n===1?"한 번만 받으면 잡음에 묻혀 박자를 셀 수 없습니다. 평균 횟수를 늘려 보십시오.":"아직 박자가 흐트러집니다. 평균을 더 내 보십시오.";}
+["snr","avg"].forEach(id=>$(id).addEventListener("input",drawSig));drawSig();
+
+/* 실험 2 */
+let P,phase0,seed=3;
+function star(){const r=rng(seed);P=3+r()*10;phase0=r()*P;}
+function data(){const size=+$("psize").value,noise=+$("tnoise").value/100;const depth=Math.pow(size*0.00916,2);const r=rng(seed*7+1);const pts=[];
+  for(let i=0;i<600;i++){const t=i*0.1;const ph=((t-phase0)%P+P)%P;const inT=ph<0.12||ph>P-0.12;pts.push([t,1-(inT?depth:0)+gauss(r)*noise]);}return{pts,depth};}
+function draw(){const size=+$("psize").value,noise=+$("tnoise").value;$("psizeVal").textContent=size===1?"지구만큼":size>=11?"목성만큼 (지구의 "+size+"배)":"지구의 "+size+"배";$("tnoiseVal").textContent=noise.toFixed(2)+"%";
+  const f=+$("fold").value;$("foldVal").textContent=f.toFixed(2)+"일";const{pts,depth}=data();
+  const vals=pts.map(p=>p[1]);const lo=Math.min(1-depth*1.6,...vals),hi=Math.max(...vals);
+  const plot=(id,xy,xmax,lab)=>{const s=$(id);s.innerHTML="";const X=v=>40+v/xmax*590,Y=v=>165-(v-lo)/(hi-lo)*145;
+    el("line",{x1:40,y1:165,x2:630,y2:165,stroke:INK,"stroke-width":1.2},s);txt(s,630,184,lab,{"text-anchor":"end","font-size":13,fill:SOFT});txt(s,44,14,"별의 밝기",{"font-size":13,fill:SOFT});
+    xy.forEach(([a,b])=>el("circle",{cx:X(a),cy:Y(b),r:1.8,fill:BLUE,opacity:.7},s));return{s,X,Y};};
+  plot("lc",pts,60,"날짜 (0~60일)");
+  const fp=pts.map(([t,b])=>[((t-phase0+f/2)%f+f)%f,b]);const{s,X,Y}=plot("folded",fp,f,`${f.toFixed(2)}일마다 접은 위치`);
+  // 구간 평균선
+  const bins=40,sum=Array(bins).fill(0),cnt=Array(bins).fill(0);fp.forEach(([a,b])=>{const k=Math.min(bins-1,Math.floor(a/f*bins));sum[k]+=b;cnt[k]++;});
+  let d="";sum.forEach((v,k)=>{if(!cnt[k])return;d+=(d?"L":"M")+X((k+.5)/bins*f)+" "+Y(v/cnt[k]);});el("path",{d,fill:"none",stroke:ALARM,"stroke-width":2.5},s);
+  const found=Math.abs(f-P)<0.06;const snr=depth/(noise/100);
+  $("trHead").innerHTML=found?(snr*Math.sqrt(60/P)>3?`찾았습니다! 이 행성은 <em>${P.toFixed(2)}일</em>마다 별 앞을 지나갑니다. 빛이 ${(depth*100).toFixed(depth<0.001?4:2)}% 어두워집니다.`:`주기는 맞았지만(${P.toFixed(2)}일) 움푹함이 잡음보다 작아 잘 보이지 않습니다. 잡음을 줄이거나 행성을 키워 보십시오.`):"아직 움푹한 자리가 흩어져 있습니다. 접는 주기를 천천히 움직여 보십시오.";}
+["psize","tnoise","fold"].forEach(id=>$(id).addEventListener("input",draw));
+$("newStar").addEventListener("click",()=>{seed++;star();draw();});star();draw();
+})();
+
+</script>
+</body>
+</html>
