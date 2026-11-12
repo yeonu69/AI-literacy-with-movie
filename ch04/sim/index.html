@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>말하는 AI 체험실</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="4장 말하는 AI · 말하는 AI 체험실. 코딩 없이 브라우저에서 해 보는 체험 시뮬레이터입니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 레이아웃: 연구 노트 한 권. 실험 세 개가 위에서 아래로 이어지고, 각 실험은 '조작판 + 펜 그림 + 읽는 법' 세 칸입니다. 종이 한 가지 모습만 씁니다. */
+:root{
+  --paper:#FBFAF6; --paper-2:#F3F1EA; --ink:#23262E; --ink-soft:#5B5F6B; --line:#C9C6BB;
+  --blue:#2F55A4; --violet:#5D6FB3; --lav:#ECEFF9;
+  --teal:#1E6E6E; --teal-bg:#E3F0F0; --amber:#9A5B12; --amber-bg:#FFF3DD;
+  --alarm:#C2412D; --alarm-bg:#FBE6E1; --ok:#2E7D4F;
+  --f-hand:"Gaegu","Nanum Pen Script","Gowun Dodum",cursive;
+  --f-body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --sketch:255px 12px 225px 14px / 14px 225px 12px 255px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.7;
+  background-image:linear-gradient(var(--paper-2) 1px,transparent 1px);background-size:100% 28px}
+.wrap{max-width:860px;margin:0 auto;padding-block:28px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--f-hand);font-weight:700;line-height:1.2;text-wrap:balance;margin:0}
+p{margin:0}
+.eyebrow{font-size:13px;letter-spacing:.06em;color:var(--violet);font-weight:700}
+header.top{display:flex;flex-direction:column;gap:14px}
+header.top h1{font-size:clamp(34px,6vw,50px);color:var(--blue)}
+header.top .lead{max-width:62ch;color:var(--ink-soft)}
+.film{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:16px 18px;display:flex;gap:16px;align-items:flex-start}
+.film svg{flex:0 0 56px}
+.film div{min-width:0}
+.film b{font-family:var(--f-hand);font-size:22px}
+.film p{font-size:15px;color:var(--ink-soft)}
+nav.jump{display:flex;flex-wrap:wrap;gap:8px}
+nav.jump a{font-family:var(--f-hand);font-size:19px;color:var(--ink);text-decoration:none;border:1.5px dashed var(--ink-soft);border-radius:999px;padding:2px 14px;background:var(--paper)}
+nav.jump a:hover,nav.jump a:focus-visible{border-style:solid;background:var(--lav)}
+section.exp{display:flex;flex-direction:column;gap:18px;scroll-margin-top:12px}
+.exp-head{display:flex;gap:14px;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:8px}
+.exp-head .no{font-family:var(--f-hand);font-size:44px;color:var(--violet);line-height:1}
+.exp-head h2{font-size:clamp(26px,4.4vw,34px)}
+.exp-head small{display:block;font-family:var(--f-body);font-size:13px;color:var(--ink-soft);font-weight:400}
+.q{font-size:17px;max-width:64ch}
+.panel{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:18px;display:flex;flex-direction:column;gap:16px}
+.controls{display:flex;flex-wrap:wrap;gap:18px 28px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ctl label,.ctl .lbl{font-size:14px;color:var(--ink-soft)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;cursor:pointer}
+.seg button,.btn{font-family:var(--f-hand);font-size:19px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);padding:2px 14px;border-radius:var(--sketch);line-height:1.4}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.btn:hover,.seg button:hover{background:var(--lav)}
+.seg button[aria-pressed="true"]:hover{background:var(--ink)}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn.primary:hover{background:#244585}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+input[type=range]{width:min(320px,100%);accent-color:var(--blue)}
+.val{font-family:var(--f-num);font-size:15px;color:var(--ink)}
+.check{display:flex;gap:8px;align-items:center;font-size:15px}
+.check input{width:18px;height:18px;accent-color:var(--blue)}
+.figure{overflow-x:auto}
+.figure svg{display:block;width:100%;height:auto;max-width:100%}
+.big{font-family:var(--f-hand);font-size:clamp(24px,4vw,30px);line-height:1.3}
+.big em{font-style:normal;color:var(--alarm);background:linear-gradient(transparent 60%,var(--alarm-bg) 60%)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{border-top:2px solid var(--ink);padding-top:6px}
+.stat span{display:block;font-size:13px;color:var(--ink-soft)}
+.stat b{font-family:var(--f-num);font-size:20px;font-variant-numeric:tabular-nums;font-weight:500}
+.stat.alarm b{color:var(--alarm)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;color:var(--ink-soft)}
+.legend i{display:inline-block;width:12px;height:12px;border:1.5px solid var(--ink);border-radius:50%;margin-right:6px;vertical-align:-1px}
+.box{border-radius:var(--sketch);padding:14px 16px;font-size:15px;max-width:none}
+.box b.t{display:block;font-family:var(--f-hand);font-size:20px;margin-bottom:2px}
+.box.teal{background:var(--teal-bg)} .box.teal b.t{color:var(--teal)}
+.box.amber{background:var(--amber-bg)} .box.amber b.t{color:var(--amber)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:640px){.two{grid-template-columns:minmax(0,1fr)}}
+table.cm{border-collapse:separate;border-spacing:6px;width:100%;font-size:14px}
+table.cm th{font-weight:400;color:var(--ink-soft);font-size:13px;text-align:center}
+table.cm td{border:2px solid var(--ink);border-radius:var(--sketch);text-align:center;padding:8px 4px;background:var(--paper)}
+table.cm td b{display:block;font-family:var(--f-num);font-size:24px;font-weight:500}
+table.cm td.tp{background:#E4F1E8} table.cm td.fp{background:var(--alarm-bg)} table.cm td.fn{background:var(--amber-bg)}
+.meter{display:flex;flex-direction:column;gap:10px}
+.meter .row{display:grid;grid-template-columns:5.5em minmax(0,1fr) 3.4em;gap:10px;align-items:center;font-size:14px}
+.meter .bar{height:14px;border:1.5px solid var(--ink);border-radius:8px;background:var(--paper);overflow:hidden}
+.meter .bar i{display:block;height:100%;background:var(--blue);transition:width .25s}
+.meter .num{font-family:var(--f-num);text-align:right;font-variant-numeric:tabular-nums}
+.missions{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.mission{border:2px dashed var(--ink-soft);border-radius:var(--sketch);padding:12px 14px;font-size:15px;background:var(--paper)}
+.mission.done{border-style:solid;border-color:var(--ok);background:#EEF6F0}
+.mission b{font-family:var(--f-hand);font-size:20px;display:block}
+.mission .st{font-size:13px;color:var(--ink-soft)}
+.mission.done .st{color:var(--ok);font-weight:700}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.log{font-family:var(--f-num);font-size:13px;line-height:1.6;max-height:180px;overflow:auto;background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--ink-soft)}
+.log div b{color:var(--ink);font-weight:500}
+.reveal{display:flex;flex-direction:column;gap:6px}
+footer{border-top:2px solid var(--ink);padding-top:14px;font-size:14px;color:var(--ink-soft);display:flex;flex-direction:column;gap:8px}
+footer a{color:var(--blue)}
+.links{display:flex;flex-wrap:wrap;gap:8px 18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+canvas.pix{display:block;image-rendering:pixelated;border:2px solid var(--ink);border-radius:6px;background:#fff;max-width:100%;height:auto;touch-action:none}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.row>*{min-width:0}
+.cap{font-size:13px;color:var(--ink-soft)}
+.mono{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+textarea,input[type=text]{font:inherit;font-size:16px;border:2px solid var(--ink);border-radius:8px;padding:8px 10px;background:var(--paper);color:var(--ink);width:100%}
+select{font:inherit;font-size:15px;border:2px solid var(--ink);border-radius:8px;padding:4px 8px;background:var(--paper);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--f-num);font-size:14px;border:1.5px solid var(--ink);border-radius:6px;padding:2px 8px;background:var(--paper)}
+.tag{display:inline-block;font-size:12px;border-radius:999px;padding:0 8px;border:1.5px solid currentColor}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="2.2"/></filter>
+    <symbol id="person" viewBox="0 0 20 30"><circle cx="10" cy="6.5" r="4.6"/><path d="M2.5 29 C2.5 18 5 13.5 10 13.5 S17.5 18 17.5 29 Z"/></symbol>
+  </defs>
+</svg>
+<div class="wrap">
+<header class="top">
+  <p class="eyebrow">영화관으로 간 AI 리터러시 · 4장 말하는 AI · 체험실</p>
+  <h1>다음 단어를 맞히는 기계</h1>
+  <p class="lead">코드는 없습니다. 단어를 누르고 막대를 밀어 보기만 하면 됩니다. 대규모 언어 모델이 다음 단어를 고르는 방법과, 문맥을 읽는 어텐션을 작은 모형으로 겪어 봅니다.</p>
+  <div class="film">
+    <svg viewBox="0 0 56 56" aria-hidden="true" style="filter:url(#rough)"><rect x="4" y="10" width="48" height="36" rx="3" fill="none" stroke="#23262E" stroke-width="2.4"/><g fill="#23262E"><rect x="8" y="14" width="5" height="4"/><rect x="8" y="24" width="5" height="4"/><rect x="8" y="34" width="5" height="4"/><rect x="43" y="14" width="5" height="4"/><rect x="43" y="24" width="5" height="4"/><rect x="43" y="34" width="5" height="4"/></g><circle cx="28" cy="28" r="7" fill="none" stroke="#C2412D" stroke-width="2.4"/><circle cx="28" cy="28" r="2.2" fill="#C2412D"/></svg>
+    <div>
+      <b>「그녀」(2013)</b>
+      <p>편지 대필 작가 테오도르는 새 인공지능 운영체제를 설치합니다. 따뜻한 목소리의 '사만다'는 메일을 정리하고, 농담을 하고, 함께 세상을 봅니다. 오늘의 챗봇은 그 목소리에 얼마나 가까워졌을까요?</p>
+    </div>
+  </div>
+  <nav class="jump" aria-label="실험 바로 가기"><a href="#nextword">실험 1 · 다음 단어 고르기</a><a href="#attention">실험 2 · '그것'은 무엇일까: 어텐션</a></nav>
+</header>
+<section class="exp" id="nextword">
+  <div class="exp-head"><span class="no">1</span><h2>다음 단어 고르기<small>책 4장 3-1, 3-2절 · 언어 모델, 토큰</small></h2></div>
+  <p class="q">아주 작은 언어 모델입니다. 문장 30개를 읽고 "이 단어 다음에 어떤 단어가 왔는지"만 세어 두었습니다. 첫 단어를 고르고, 막대가 긴 후보를 누르며 문장을 이어 가 보십시오. 대규모 언어 모델도 원리는 같습니다. 다만 수조 개의 단어를 읽고, 앞의 문맥 전체를 봅니다.</p>
+  <div class="panel">
+    <div class="controls">
+      <div class="ctl"><span class="lbl" id="startLbl">첫 단어</span><div class="seg" role="group" aria-labelledby="startLbl" id="startSeg"><button type="button" data-v="오늘" aria-pressed="true">오늘</button><button type="button" data-v="나는">나는</button><button type="button" data-v="그녀는">그녀는</button><button type="button" data-v="음악을">음악을</button><button type="button" data-v="바다를">바다를</button></div></div>
+      <div class="ctl"><label for="temp">온도 (얼마나 모험할까) <span class="val" id="tempVal"></span></label><input type="range" id="temp" min="0.1" max="3" step="0.1" value="1"></div>
+    </div>
+    <p class="big" id="sentence" style="min-height:1.4em"></p>
+    <div class="reveal"><span class="cap">다음 단어 후보와 확률 (누르면 이어 붙입니다)</span><div id="cands" class="meter"></div></div>
+    <div class="btnrow"><button type="button" class="btn primary" id="auto">AI가 끝까지 이어 쓰기</button><button type="button" class="btn" id="auto5">다섯 번 써 보기</button><button type="button" class="btn" id="back">한 단어 지우기</button></div>
+    <div class="log" id="gen" aria-live="polite"></div>
+  </div>
+  <div class="box teal"><b class="t">읽는 법</b>모델은 다음 단어의 확률을 계산하고 그중 하나를 뽑습니다. <b>온도</b>를 낮추면 가장 흔한 단어만 고르니 늘 같은 문장이 나옵니다. 온도를 높이면 드문 단어도 뽑혀서 새롭지만 엉뚱한 문장이 나옵니다. 그럴듯하지만 사실과 다른 말, 곧 환각도 이 '그럴듯함'에서 생깁니다. 모델은 사실을 확인하지 않고 다음에 올 법한 단어를 고를 뿐입니다.</div>
+</section>
+
+<section class="exp" id="attention">
+  <div class="exp-head"><span class="no">2</span><h2>'그것'은 무엇일까: 어텐션<small>책 4장 3-4절 · 어텐션과 트랜스포머</small></h2></div>
+  <p class="q">"그것은"이 가리키는 것은 고양이일까요, 생선일까요? 뒤에 오는 말에 따라 달라집니다. 트랜스포머는 단어마다 문장 속 다른 단어를 얼마나 주의 깊게 볼지 점수를 매깁니다. 문장을 바꾸고 단어를 눌러 보십시오.</p>
+  <div class="panel">
+    <div class="ctl"><span class="lbl" id="sLbl">문장</span><div class="seg" role="group" aria-labelledby="sLbl" id="sentSeg"><button type="button" data-v="0" aria-pressed="true">…그것은 배가 고팠다</button><button type="button" data-v="1">…그것은 싱싱했다</button><button type="button" data-v="2">…그는 감동했다</button></div></div>
+    <div class="figure"><svg id="att" viewBox="0 0 640 220" style="min-width:560px" aria-label="어텐션 그림"></svg></div>
+    <div id="words" class="btnrow"></div>
+    <p class="big" id="attHead"></p>
+  </div>
+  <div class="box amber"><b class="t">생각해 볼 것</b>예전 번역기는 문장을 앞에서부터 차례로 읽어서 멀리 떨어진 단어를 잘 놓쳤습니다. 2017년에 나온 트랜스포머는 모든 단어가 모든 단어를 한꺼번에 봅니다. 그 덕분에 긴 글의 문맥을 읽게 되었습니다. 그림의 점수는 원리를 보여 주려고 만든 예시 값입니다. 실제 모델은 이런 주의를 수십 겹으로 쌓습니다.</div>
+</section>
+
+<footer>
+  <p>이 체험실의 숫자는 원리를 보여 주려고 만든 가상의 값입니다.</p>
+  <div class="links"><a href="https://yeonu69.github.io/AI-literacy-with-movie/ch04/lab/">4장 코랩 실습 열기</a><a href="https://yeonu69.github.io/AI-literacy-with-movie/ch04/t1/">「그녀」 예고편</a><a href="https://yeonu69.github.io/AI-literacy-with-movie/sim/">다른 장 체험실 보기</a></div>
+  <p>「영화관으로 간 AI 리터러시」 웹부록 · AInsight@Movie</p>
+</footer>
+</div>
+<script>
+const NS="http://www.w3.org/2000/svg";
+const INK="#23262E", ALARM="#C2412D", GREY="#E6E3DA", SOFT="#5B5F6B", BLUE="#2F55A4", TEAL="#1E6E6E", AMBER="#9A5B12", OK="#2E7D4F", PAPER="#FBFAF6", VIOLET="#5D6FB3", LINE="#C9C6BB";
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n).toLocaleString("ko-KR");
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function txt(parent,x,y,s,attrs){const t=el("text",Object.assign({x,y,"font-family":"Gaegu, cursive","font-size":18,fill:INK},attrs||{}),parent);t.textContent=s;return t;}
+function sk(parent){return el("g",{style:"filter:url(#rough)"},parent);}
+function rng(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+function seg(id,cb){const g=$(id);g.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{g.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));cb(b.dataset.v,b);}));}
+function stats(id,items){$(id).innerHTML=items.map(([l,v,c])=>`<div class="stat ${c||""}"><span>${l}</span><b>${v}</b></div>`).join("");}
+
+(function(){
+const CORPUS=`오늘 날씨가 정말 좋다 .
+오늘 날씨가 조금 춥다 .
+오늘 날씨가 좋으면 산책하고 싶다 .
+오늘 기분이 정말 좋다 .
+오늘 기분이 조금 이상하다 .
+오늘 너와 이야기하고 싶다 .
+나는 오늘 너와 이야기하고 싶다 .
+나는 너와 산책하고 싶다 .
+나는 음악을 듣고 싶다 .
+나는 편지를 쓰고 싶다 .
+나는 바다를 보고 싶다 .
+나는 정말 행복하다 .
+너는 오늘 기분이 어때 ?
+너와 이야기하면 기분이 좋다 .
+너와 이야기하면 시간이 빨리 간다 .
+음악을 듣고 산책하면 기분이 좋다 .
+음악을 들으면 마음이 편하다 .
+음악을 만들면 시간이 빨리 간다 .
+편지를 쓰면 마음이 편하다 .
+그녀는 음악을 만들었다 .
+그녀는 편지를 읽었다 .
+그녀는 웃으며 이야기했다 .
+그녀는 오늘 정말 행복하다 .
+그녀는 바다를 보고 싶다 .
+그는 편지를 쓰고 웃었다 .
+그는 오늘 조금 외롭다 .
+바다를 보면 마음이 편하다 .
+바다를 보고 음악을 들었다 .
+마음이 편하면 잠이 온다 .
+시간이 빨리 간다 .`.split("\n").map(s=>s.trim().split(" "));
+const B={};CORPUS.forEach(s=>{for(let i=0;i<s.length-1;i++){(B[s[i]]=B[s[i]]||{});B[s[i]][s[i+1]]=(B[s[i]][s[i+1]]||0)+1;}});
+let words=["오늘"];const r=rng(11);
+function probs(w){const c=B[w]||{};const T=+$("temp").value;const e=Object.entries(c).map(([k,v])=>[k,Math.pow(v,1/T)]);const s=e.reduce((a,b)=>a+b[1],0);return e.map(([k,v])=>[k,v/s]).sort((a,b)=>b[1]-a[1]);}
+function sample(w){const p=probs(w);let u=r();for(const[k,v]of p){u-=v;if(u<=0)return k;}return p.length?p[p.length-1][0]:".";}
+function draw(){$("tempVal").textContent=(+$("temp").value).toFixed(1);
+  const end=[".","?"].includes(words[words.length-1]);
+  $("sentence").innerHTML=words.map((w,i)=>i===words.length-1&&!end?`<em>${w}</em>`:w).join(" ")+(end?"":" <span style='color:#9A968C'>▢</span>");
+  const p=end?[]:probs(words[words.length-1]);
+  $("cands").innerHTML=p.length?p.slice(0,7).map(([k,v])=>`<button type="button" class="row" data-w="${k}" style="all:unset;cursor:pointer;display:grid;grid-template-columns:5.5em minmax(0,1fr) 3.4em;gap:10px;align-items:center;font-size:16px"><span style="font-family:var(--f-hand);font-size:20px">${k==="."?"(마침표)":k==="?"?"(물음표)":k}</span><span class="bar"><i style="width:${v*100}%"></i></span><span class="num">${Math.round(v*100)}%</span></button>`).join(""):`<span class="cap">문장이 끝났습니다. 첫 단어를 다시 고르거나 한 단어를 지워 보십시오.</span>`;
+  $("cands").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{words.push(b.dataset.w);draw();}));}
+function gen(){let w=[words[0]];for(let i=0;i<12;i++){const n=sample(w[w.length-1]);w.push(n);if(n==="."||n==="?")break;}return w.join(" ");}
+seg("startSeg",v=>{words=[v];draw();});
+$("temp").addEventListener("input",draw);
+$("auto").addEventListener("click",()=>{words=gen().split(" ");draw();$("gen").insertAdjacentHTML("afterbegin",`<div>온도 ${(+$("temp").value).toFixed(1)} · <b>${words.join(" ")}</b></div>`);});
+$("auto5").addEventListener("click",()=>{for(let i=0;i<5;i++)$("gen").insertAdjacentHTML("afterbegin",`<div>온도 ${(+$("temp").value).toFixed(1)} · <b>${gen()}</b></div>`);});
+$("back").addEventListener("click",()=>{if(words.length>1)words.pop();draw();});
+draw();
+
+/* 실험 2: 어텐션 (설명용 예시 값) */
+const S=[
+ {w:["고양이가","생선을","먹었다.","그것은","아주","배가","고팠다."],q:3,att:{3:[.62,.12,.05,.06,.02,.08,.05]},ans:"고양이로"},
+ {w:["고양이가","생선을","먹었다.","그것은","아주","싱싱했다."],q:3,att:{3:[.10,.66,.06,.07,.02,.09]},ans:"생선으로"},
+ {w:["사만다는","테오도르에게","곡을","들려주었다.","그는","감동했다."],q:4,att:{4:[.08,.64,.07,.08,.05,.08]},ans:"테오도르로"}];
+let si=0,qi=3;
+function attOf(s,i){if(s.att[i])return s.att[i];const n=s.w.length;const a=s.w.map((_,j)=>j===i?.4:Math.abs(j-i)===1?.2:.2/(n));const t=a.reduce((x,y)=>x+y);return a.map(x=>x/t);}
+function drawAtt(){const s=S[si];const a=attOf(s,qi);const sv=$("att");sv.innerHTML="";const n=s.w.length;const X=j=>40+j*(560/(n-1));
+  s.w.forEach((w,j)=>{if(j===qi)return;el("path",{d:`M${X(qi)} 150 Q ${(X(qi)+X(j))/2} ${150-60-Math.abs(qi-j)*12} ${X(j)} 150`,fill:"none",stroke:ALARM,"stroke-width":1+a[j]*16,opacity:.25+a[j]*.9},sv);});
+  const g=sk(sv);
+  s.w.forEach((w,j)=>{const isQ=j===qi;el("rect",{x:X(j)-44,y:150,width:88,height:34,rx:8,fill:isQ?"#ECEFF9":`rgba(194,65,45,${a[j]*0.9})`,stroke:INK,"stroke-width":isQ?2.5:1.5},g);
+    txt(sv,X(j),173,w,{"text-anchor":"middle","font-size":n>6?15:17});
+    if(!isQ)txt(sv,X(j),206,Math.round(a[j]*100)+"%",{"text-anchor":"middle","font-size":13,"font-family":"IBM Plex Mono, monospace",fill:SOFT});});
+  txt(sv,X(qi),136,"보는 단어",{"text-anchor":"middle","font-size":14,fill:BLUE});
+  $("words").innerHTML=s.w.map((w,j)=>`<button type="button" class="btn" data-j="${j}" aria-pressed="${j===qi}" style="${j===qi?"background:#23262E;color:#fff":""}">${w}</button>`).join("");
+  $("words").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{qi=+b.dataset.j;drawAtt();}));
+  if(s.att[qi]){const best=a.map((v,j)=>[v,j]).filter(x=>x[1]!==qi).sort((x,y)=>y[0]-x[0])[0][1];$("attHead").innerHTML=`'${s.w[qi]}' 자리에서는 <em>${s.w[best]}</em> 쪽을 가장 주의 깊게 봅니다. 그래서 ${s.ans} 읽습니다.`;}
+  else $("attHead").innerHTML=`'${s.w[qi]}' 자리에서는 주로 자기 자신과 바로 옆 단어를 봅니다. 대명사(그것은, 그는)를 눌러 보십시오.`;}
+seg("sentSeg",v=>{si=+v;qi=S[si].q;drawAtt();});
+drawAtt();
+})();
+
+</script>
+</body>
+</html>
