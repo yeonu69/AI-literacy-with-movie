@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>전략 게임 체험실</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="7장 전략적으로 생각하는 AI · 전략 게임 체험실. 코딩 없이 브라우저에서 해 보는 체험 시뮬레이터입니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 레이아웃: 연구 노트 한 권. 실험 세 개가 위에서 아래로 이어지고, 각 실험은 '조작판 + 펜 그림 + 읽는 법' 세 칸입니다. 종이 한 가지 모습만 씁니다. */
+:root{
+  --paper:#FBFAF6; --paper-2:#F3F1EA; --ink:#23262E; --ink-soft:#5B5F6B; --line:#C9C6BB;
+  --blue:#2F55A4; --violet:#5D6FB3; --lav:#ECEFF9;
+  --teal:#1E6E6E; --teal-bg:#E3F0F0; --amber:#9A5B12; --amber-bg:#FFF3DD;
+  --alarm:#C2412D; --alarm-bg:#FBE6E1; --ok:#2E7D4F;
+  --f-hand:"Gaegu","Nanum Pen Script","Gowun Dodum",cursive;
+  --f-body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --sketch:255px 12px 225px 14px / 14px 225px 12px 255px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.7;
+  background-image:linear-gradient(var(--paper-2) 1px,transparent 1px);background-size:100% 28px}
+.wrap{max-width:860px;margin:0 auto;padding-block:28px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--f-hand);font-weight:700;line-height:1.2;text-wrap:balance;margin:0}
+p{margin:0}
+.eyebrow{font-size:13px;letter-spacing:.06em;color:var(--violet);font-weight:700}
+header.top{display:flex;flex-direction:column;gap:14px}
+header.top h1{font-size:clamp(34px,6vw,50px);color:var(--blue)}
+header.top .lead{max-width:62ch;color:var(--ink-soft)}
+.film{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:16px 18px;display:flex;gap:16px;align-items:flex-start}
+.film svg{flex:0 0 56px}
+.film div{min-width:0}
+.film b{font-family:var(--f-hand);font-size:22px}
+.film p{font-size:15px;color:var(--ink-soft)}
+nav.jump{display:flex;flex-wrap:wrap;gap:8px}
+nav.jump a{font-family:var(--f-hand);font-size:19px;color:var(--ink);text-decoration:none;border:1.5px dashed var(--ink-soft);border-radius:999px;padding:2px 14px;background:var(--paper)}
+nav.jump a:hover,nav.jump a:focus-visible{border-style:solid;background:var(--lav)}
+section.exp{display:flex;flex-direction:column;gap:18px;scroll-margin-top:12px}
+.exp-head{display:flex;gap:14px;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:8px}
+.exp-head .no{font-family:var(--f-hand);font-size:44px;color:var(--violet);line-height:1}
+.exp-head h2{font-size:clamp(26px,4.4vw,34px)}
+.exp-head small{display:block;font-family:var(--f-body);font-size:13px;color:var(--ink-soft);font-weight:400}
+.q{font-size:17px;max-width:64ch}
+.panel{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:18px;display:flex;flex-direction:column;gap:16px}
+.controls{display:flex;flex-wrap:wrap;gap:18px 28px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ctl label,.ctl .lbl{font-size:14px;color:var(--ink-soft)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;cursor:pointer}
+.seg button,.btn{font-family:var(--f-hand);font-size:19px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);padding:2px 14px;border-radius:var(--sketch);line-height:1.4}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.btn:hover,.seg button:hover{background:var(--lav)}
+.seg button[aria-pressed="true"]:hover{background:var(--ink)}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn.primary:hover{background:#244585}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+input[type=range]{width:min(320px,100%);accent-color:var(--blue)}
+.val{font-family:var(--f-num);font-size:15px;color:var(--ink)}
+.check{display:flex;gap:8px;align-items:center;font-size:15px}
+.check input{width:18px;height:18px;accent-color:var(--blue)}
+.figure{overflow-x:auto}
+.figure svg{display:block;width:100%;height:auto;max-width:100%}
+.big{font-family:var(--f-hand);font-size:clamp(24px,4vw,30px);line-height:1.3}
+.big em{font-style:normal;color:var(--alarm);background:linear-gradient(transparent 60%,var(--alarm-bg) 60%)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{border-top:2px solid var(--ink);padding-top:6px}
+.stat span{display:block;font-size:13px;color:var(--ink-soft)}
+.stat b{font-family:var(--f-num);font-size:20px;font-variant-numeric:tabular-nums;font-weight:500}
+.stat.alarm b{color:var(--alarm)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;color:var(--ink-soft)}
+.legend i{display:inline-block;width:12px;height:12px;border:1.5px solid var(--ink);border-radius:50%;margin-right:6px;vertical-align:-1px}
+.box{border-radius:var(--sketch);padding:14px 16px;font-size:15px;max-width:none}
+.box b.t{display:block;font-family:var(--f-hand);font-size:20px;margin-bottom:2px}
+.box.teal{background:var(--teal-bg)} .box.teal b.t{color:var(--teal)}
+.box.amber{background:var(--amber-bg)} .box.amber b.t{color:var(--amber)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:640px){.two{grid-template-columns:minmax(0,1fr)}}
+table.cm{border-collapse:separate;border-spacing:6px;width:100%;font-size:14px}
+table.cm th{font-weight:400;color:var(--ink-soft);font-size:13px;text-align:center}
+table.cm td{border:2px solid var(--ink);border-radius:var(--sketch);text-align:center;padding:8px 4px;background:var(--paper)}
+table.cm td b{display:block;font-family:var(--f-num);font-size:24px;font-weight:500}
+table.cm td.tp{background:#E4F1E8} table.cm td.fp{background:var(--alarm-bg)} table.cm td.fn{background:var(--amber-bg)}
+.meter{display:flex;flex-direction:column;gap:10px}
+.meter .row{display:grid;grid-template-columns:5.5em minmax(0,1fr) 3.4em;gap:10px;align-items:center;font-size:14px}
+.meter .bar{height:14px;border:1.5px solid var(--ink);border-radius:8px;background:var(--paper);overflow:hidden}
+.meter .bar i{display:block;height:100%;background:var(--blue);transition:width .25s}
+.meter .num{font-family:var(--f-num);text-align:right;font-variant-numeric:tabular-nums}
+.missions{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.mission{border:2px dashed var(--ink-soft);border-radius:var(--sketch);padding:12px 14px;font-size:15px;background:var(--paper)}
+.mission.done{border-style:solid;border-color:var(--ok);background:#EEF6F0}
+.mission b{font-family:var(--f-hand);font-size:20px;display:block}
+.mission .st{font-size:13px;color:var(--ink-soft)}
+.mission.done .st{color:var(--ok);font-weight:700}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.log{font-family:var(--f-num);font-size:13px;line-height:1.6;max-height:180px;overflow:auto;background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--ink-soft)}
+.log div b{color:var(--ink);font-weight:500}
+.reveal{display:flex;flex-direction:column;gap:6px}
+footer{border-top:2px solid var(--ink);padding-top:14px;font-size:14px;color:var(--ink-soft);display:flex;flex-direction:column;gap:8px}
+footer a{color:var(--blue)}
+.links{display:flex;flex-wrap:wrap;gap:8px 18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+canvas.pix{display:block;image-rendering:pixelated;border:2px solid var(--ink);border-radius:6px;background:#fff;max-width:100%;height:auto;touch-action:none}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.row>*{min-width:0}
+.cap{font-size:13px;color:var(--ink-soft)}
+.mono{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+textarea,input[type=text]{font:inherit;font-size:16px;border:2px solid var(--ink);border-radius:8px;padding:8px 10px;background:var(--paper);color:var(--ink);width:100%}
+select{font:inherit;font-size:15px;border:2px solid var(--ink);border-radius:8px;padding:4px 8px;background:var(--paper);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--f-num);font-size:14px;border:1.5px solid var(--ink);border-radius:6px;padding:2px 8px;background:var(--paper)}
+.tag{display:inline-block;font-size:12px;border-radius:999px;padding:0 8px;border:1.5px solid currentColor}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="2.2"/></filter>
+    <symbol id="person" viewBox="0 0 20 30"><circle cx="10" cy="6.5" r="4.6"/><path d="M2.5 29 C2.5 18 5 13.5 10 13.5 S17.5 18 17.5 29 Z"/></symbol>
+  </defs>
+</svg>
+<div class="wrap">
+<header class="top">
+  <p class="eyebrow">영화관으로 간 AI 리터러시 · 7장 전략적으로 생각하는 AI · 체험실</p>
+  <h1>배신할까요, 협력할까요?</h1>
+  <p class="lead">코드는 없습니다. 버튼을 눌러 게임을 해 보기만 하면 됩니다. 반복되는 죄수의 딜레마와, 보상만으로 길을 배우는 강화학습을 직접 겪어 봅니다.</p>
+  <div class="film">
+    <svg viewBox="0 0 56 56" aria-hidden="true" style="filter:url(#rough)"><rect x="4" y="10" width="48" height="36" rx="3" fill="none" stroke="#23262E" stroke-width="2.4"/><g fill="#23262E"><rect x="8" y="14" width="5" height="4"/><rect x="8" y="24" width="5" height="4"/><rect x="8" y="34" width="5" height="4"/><rect x="43" y="14" width="5" height="4"/><rect x="43" y="24" width="5" height="4"/><rect x="43" y="34" width="5" height="4"/></g><circle cx="28" cy="28" r="7" fill="none" stroke="#C2412D" stroke-width="2.4"/><circle cx="28" cy="28" r="2.2" fill="#C2412D"/></svg>
+    <div>
+      <b>「뷰티풀 마인드」(2001)</b>
+      <p>1947년 프린스턴의 대학원생 존 내시는 친구들과 앉은 술집에서 번뜩이는 생각을 떠올립니다. 모두가 자기에게만 좋은 선택을 하면 오히려 모두가 손해를 볼 수 있다는 것입니다. 이 생각은 훗날 '내시 균형'이라는 이름을 얻습니다.</p>
+    </div>
+  </div>
+  <nav class="jump" aria-label="실험 바로 가기"><a href="#dilemma">실험 1 · 컴퓨터와 죄수의 딜레마</a><a href="#tournament">실험 2 · 전략 대회 열기</a><a href="#qlearn">실험 3 · 보상으로 배우는 로봇</a></nav>
+</header>
+<section class="exp" id="dilemma">
+  <div class="exp-head"><span class="no">1</span><h2>컴퓨터와 죄수의 딜레마<small>책 7장 3-2, 3-3절 · 죄수의 딜레마, 내시 균형</small></h2></div>
+  <p class="q">나와 공범(컴퓨터)이 따로 조사를 받습니다. 둘 다 침묵하면 1년씩, 둘 다 자백하면 5년씩 삽니다. 한 사람만 자백하면 자백한 사람은 풀려나고 침묵한 사람은 10년을 삽니다. 이런 일이 열 번 되풀이됩니다. 형량을 가장 적게 받아 보십시오.</p>
+  <div class="panel">
+    <div class="controls">
+      <div class="ctl"><label for="opp">상대 컴퓨터</label><select id="opp"></select></div>
+      <div class="btnrow"><button type="button" class="btn" id="pdRandom">상대를 몰래 바꾸기</button><button type="button" class="btn" id="pdReset">다시 하기</button></div>
+    </div>
+    <div class="figure"><svg id="pd" viewBox="0 0 620 132" style="min-width:560px" aria-label="열 번의 선택 기록"></svg></div>
+    <div class="btnrow"><button type="button" class="btn primary" id="pdC">침묵하기 (협력)</button><button type="button" class="btn" id="pdD" style="border-color:#C2412D;color:#C2412D">자백하기 (배신)</button></div>
+    <p class="big" id="pdHead"></p>
+  </div>
+</section>
+
+<section class="exp" id="tournament">
+  <div class="exp-head"><span class="no">2</span><h2>전략 대회 열기<small>책 7장 3-4절 · 액설로드 대회, 팃포탯</small></h2></div>
+  <p class="q">1980년 정치학자 액설로드는 반복 죄수의 딜레마 프로그램 대회를 열었습니다. 여기서도 일곱 전략이 서로 한 번씩 200번씩 겨룹니다. 형량이 가장 적은 전략이 우승입니다.</p>
+  <div class="panel">
+    <div class="controls"><label class="check"><input type="checkbox" id="noise">가끔(5%) 실수로 반대 선택을 하기</label><button type="button" class="btn primary" id="runTour">대회 다시 열기</button></div>
+    <div class="figure" aria-hidden="true"><svg id="tour" viewBox="0 0 640 236"></svg></div>
+    <p class="big" id="tourHead"></p>
+  </div>
+  <div class="box teal"><b class="t">읽는 법</b>한 번만 만나면 자백이 늘 유리해 보입니다. 둘 다 그렇게 생각해서 5년씩 사는 자리가 내시 균형입니다. 그런데 여러 번 만나면 이야기가 달라집니다. 먼저 배신하지 않는 '착한' 전략들이 위쪽을 차지합니다. 액설로드 대회에서는 먼저 배신하지 않고, 배신당하면 갚고, 상대가 돌아오면 용서하는 팃포탯이 두 번 모두 우승했습니다. 참가한 전략이 달라지면 순위도 바뀝니다. 실수를 섞으면 팃포탯끼리도 보복이 꼬리를 무는 약점이 드러납니다.</div>
+</section>
+
+<section class="exp" id="qlearn">
+  <div class="exp-head"><span class="no">3</span><h2>보상으로 배우는 로봇<small>책 7장 3-5, 3-8절 · 강화학습, 보상 설계</small></h2></div>
+  <p class="q">로봇은 지도를 모릅니다. 깃발에 닿으면 +10점, 한 걸음마다 −0.1점만 압니다. 여러 번 해 보며 칸마다 어느 쪽이 좋은지 기억합니다. 화살표는 로봇이 배운 '이 칸에서 갈 방향'입니다.</p>
+  <div class="panel">
+    <div class="controls">
+      <div class="btnrow"><button type="button" class="btn" id="q1">한 판 해 보기</button><button type="button" class="btn primary" id="q50">50판 연습</button><button type="button" class="btn" id="qReset">처음으로</button></div>
+      <label class="check"><input type="checkbox" id="coinMode">길 위에 동전(+1점) 놓기, 주우면 다시 생김</label>
+    </div>
+    <div class="figure" aria-hidden="true"><svg id="maze" viewBox="0 0 400 320" style="max-width:420px"></svg></div>
+    <p class="big" id="qHead"></p>
+    <div class="stats" id="qStats"></div>
+  </div>
+  <div class="box amber"><b class="t">생각해 볼 것</b>동전을 켜고 50판을 연습시켜 보십시오. 로봇은 우리가 바란 일(깃발 가기)이 아니라 우리가 점수를 준 일(동전 줍기)을 배웁니다. 이것을 <b>보상 해킹</b>이라고 합니다. AI에게 원하는 것을 정확히 말하는 일은 생각보다 어렵습니다.</div>
+</section>
+
+<footer>
+  <p>이 체험실의 숫자는 원리를 보여 주려고 만든 가상의 값입니다.</p>
+  <div class="links"><a href="https://yeonu69.github.io/AI-literacy-with-movie/ch07/lab/">7장 코랩 실습 열기</a><a href="https://yeonu69.github.io/AI-literacy-with-movie/ch07/t1/">「뷰티풀 마인드」 예고편</a><a href="https://yeonu69.github.io/AI-literacy-with-movie/sim/">다른 장 체험실 보기</a></div>
+  <p>「영화관으로 간 AI 리터러시」 웹부록 · AInsight@Movie</p>
+</footer>
+</div>
+<script>
+const NS="http://www.w3.org/2000/svg";
+const INK="#23262E", ALARM="#C2412D", GREY="#E6E3DA", SOFT="#5B5F6B", BLUE="#2F55A4", TEAL="#1E6E6E", AMBER="#9A5B12", OK="#2E7D4F", PAPER="#FBFAF6", VIOLET="#5D6FB3", LINE="#C9C6BB";
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n).toLocaleString("ko-KR");
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function txt(parent,x,y,s,attrs){const t=el("text",Object.assign({x,y,"font-family":"Gaegu, cursive","font-size":18,fill:INK},attrs||{}),parent);t.textContent=s;return t;}
+function sk(parent){return el("g",{style:"filter:url(#rough)"},parent);}
+function rng(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+function seg(id,cb){const g=$(id);g.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{g.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));cb(b.dataset.v,b);}));}
+function stats(id,items){$(id).innerHTML=items.map(([l,v,c])=>`<div class="stat ${c||""}"><span>${l}</span><b>${v}</b></div>`).join("");}
+
+(function(){
+/* 실험 1: 죄수의 딜레마 (형량, 적을수록 좋음) */
+const YEARS={CC:[1,1],CD:[10,0],DC:[0,10],DD:[5,5]};
+const STRAT={
+ "팃포탯":{d:"처음엔 침묵, 그다음엔 상대가 지난번에 한 대로",f:(m,o)=>o.length?o[o.length-1]:"C"},
+ "늘 침묵":{d:"언제나 동료를 믿고 입을 다뭅니다",f:()=>"C"},
+ "늘 자백":{d:"언제나 먼저 자백합니다",f:()=>"D"},
+ "원한":{d:"한 번이라도 배신당하면 끝까지 자백합니다",f:(m,o)=>o.includes("D")?"D":"C"},
+ "무작위":{d:"동전을 던져 정합니다",f:(m,o,r)=>r()<.5?"C":"D"},
+ "요스":{d:"팃포탯처럼 하다가 10번에 한 번 몰래 자백합니다",f:(m,o,r)=>o.length&&o[o.length-1]==="D"?"D":(r()<.1?"D":"C")},
+ "의심 많은 팃포탯":{d:"처음엔 자백, 그다음엔 상대가 한 대로",f:(m,o)=>o.length?o[o.length-1]:"D"}};
+let opp="팃포탯",me=[],them=[],r1=rng(3);
+function play(mv){if(me.length>=10)return;const o=STRAT[opp].f(them,me,r1);me.push(mv);them.push(o);draw1();}
+function draw1(){const k=me.map((m,i)=>YEARS[m+them[i]]);const my=k.reduce((a,b)=>a+b[0],0),th=k.reduce((a,b)=>a+b[1],0);
+  const s=$("pd");s.innerHTML="";
+  txt(s,10,40,"나",{"font-size":20,"font-weight":700});txt(s,10,90,"컴퓨터",{"font-size":17});
+  for(let i=0;i<10;i++){const x=90+i*52;
+    el("rect",{x,y:20,width:44,height:30,rx:6,fill:me[i]?(me[i]==="C"?"#E4F1E8":"#FBE6E1"):"#fff",stroke:INK,"stroke-width":1.5},s);
+    el("rect",{x,y:70,width:44,height:30,rx:6,fill:them[i]?(them[i]==="C"?"#E4F1E8":"#FBE6E1"):"#fff",stroke:INK,"stroke-width":1.5},s);
+    if(me[i]){txt(s,x+22,41,me[i]==="C"?"침묵":"자백",{"text-anchor":"middle","font-size":15});txt(s,x+22,91,them[i]==="C"?"침묵":"자백",{"text-anchor":"middle","font-size":15});
+      txt(s,x+22,122,`${k[i][0]}·${k[i][1]}`,{"text-anchor":"middle","font-size":12,"font-family":"IBM Plex Mono, monospace",fill:SOFT});}
+    else txt(s,x+22,122,String(i+1),{"text-anchor":"middle","font-size":12,fill:LINE});}
+  const done=me.length===10;
+  $("pdHead").innerHTML=!me.length?`상대는 <b>${opp}</b>입니다. 상대의 규칙은 아직 모릅니다. 열 번 만나서 형량을 줄여 보십시오.`:
+   done?`10번을 마쳤습니다. 나는 <em>${my}년</em>, 컴퓨터는 ${th}년입니다. 상대의 규칙은 '${STRAT[opp].d}'였습니다.`:`${me.length}번째까지 나 ${my}년, 컴퓨터 ${th}년입니다.`;
+  $("pdC").disabled=$("pdD").disabled=done;}
+const sel=$("opp");Object.keys(STRAT).forEach(k=>{const o=document.createElement("option");o.value=k;o.textContent=k;sel.appendChild(o);});
+sel.addEventListener("change",()=>{opp=sel.value;me=[];them=[];draw1();});
+$("pdRandom").addEventListener("click",()=>{const ks=Object.keys(STRAT);opp=ks[Math.floor(Math.random()*ks.length)];sel.value=opp;me=[];them=[];r1=rng(Date.now()&0xffff);draw1();$("pdHead").innerHTML="상대를 몰래 바꿨습니다. 누구인지 맞혀 보면서 해 보십시오.";});
+$("pdC").addEventListener("click",()=>play("C"));$("pdD").addEventListener("click",()=>play("D"));
+$("pdReset").addEventListener("click",()=>{me=[];them=[];draw1();});
+draw1();
+
+/* 실험 2: 대회 */
+function match(a,b,rounds,noise,r){const ma=[],mb=[];let ya=0,yb=0;for(let i=0;i<rounds;i++){let x=STRAT[a].f(ma,mb,r),y=STRAT[b].f(mb,ma,r);if(r()<noise)x=x==="C"?"D":"C";if(r()<noise)y=y==="C"?"D":"C";ma.push(x);mb.push(y);const k=YEARS[x+y];ya+=k[0];yb+=k[1];}return[ya,yb];}
+function tour(){const noise=$("noise").checked?0.05:0;const r=rng(42);const ks=Object.keys(STRAT);const tot={};ks.forEach(k=>tot[k]=0);
+  for(let i=0;i<ks.length;i++)for(let j=i;j<ks.length;j++){const[a,b]=match(ks[i],ks[j],200,noise,r);tot[ks[i]]+=a;if(i!==j)tot[ks[j]]+=b;}
+  const games=ks.length;const res=ks.map(k=>[k,tot[k]/games/200]).sort((a,b)=>a[1]-b[1]);
+  const s=$("tour");s.innerHTML="";const mx=Math.max(...res.map(x=>x[1]));
+  res.forEach(([k,v],i)=>{const y=8+i*32;txt(s,150,y+20,`${i+1}위 ${k}`,{"text-anchor":"end","font-size":17,"font-weight":i===0?700:400});
+    el("rect",{x:160,y:y+4,width:330*v/Math.max(mx,0.01),height:22,rx:4,fill:i===0?OK:"#C9C6BB"},s);
+    txt(s,166+330*v/Math.max(mx,0.01),y+21,`한 판 평균 ${v.toFixed(2)}년`,{"font-size":13,"font-family":"Gowun Dodum, sans-serif",fill:SOFT});});
+  $("tourHead").innerHTML=`형량이 가장 적은 우승자는 <em>${res[0][0]}</em>입니다.`+(noise?" 실수가 섞이자 순위가 달라졌습니다. 실수 한 번에 보복이 꼬리를 물면 착한 전략도 손해를 봅니다.":" 1·2위가 모두 먼저 배신하지 않는 전략인지 보십시오.");}
+$("runTour").addEventListener("click",tour);$("noise").addEventListener("change",tour);tour();
+
+/* 실험 3: Q러닝 미로 */
+const NX=6,NY=5,START=[0,4],GOAL=[5,0],WALL=new Set(["1,1","1,2","1,3","3,0","3,1","3,3","4,3"]),COIN=[0,2];
+const ACT=[[0,-1],[1,0],[0,1],[-1,0]],ARROW=["↑","→","↓","←"];
+let Q,ep,hist,lastPath,rq=rng(9);
+function reset(){Q={};ep=0;hist=[];lastPath=[];rq=rng(9);drawQ();}
+const q=(s)=>Q[s]||(Q[s]=[0,0,0,0]);
+function episode(greedy){let [x,y]=START,path=[[x,y]],total=0,coinUsed=0;const coin=$("coinMode").checked;
+  for(let t=0;t<40;t++){const s=x+","+y;let a;const qs=q(s);if(!greedy&&rq()<0.2)a=Math.floor(rq()*4);else{const m=Math.max(...qs);const c=[0,1,2,3].filter(i=>qs[i]===m);a=c[Math.floor(rq()*c.length)];}
+    let nx=x+ACT[a][0],ny=y+ACT[a][1];if(nx<0||ny<0||nx>=NX||ny>=NY||WALL.has(nx+","+ny)){nx=x;ny=y;}
+    let rw=-0.1,done=false;if(nx===GOAL[0]&&ny===GOAL[1]){rw=10;done=true;}
+    else if(coin&&nx===COIN[0]&&ny===COIN[1]){rw=1;coinUsed++;}
+    const ns=nx+","+ny;if(!greedy)qs[a]+=0.5*(rw+(done?0:0.9*Math.max(...q(ns)))-qs[a]);
+    total+=rw;x=nx;y=ny;path.push([x,y]);if(done)return{ok:true,path,total,coinUsed};}
+  return{ok:false,path,total,coinUsed};}
+function train(n){for(let i=0;i<n;i++){const e=episode(false);ep++;hist.push(e.ok);lastPath=e.path;}drawQ();}
+function drawQ(){const s=$("maze");s.innerHTML="";const C=60,ox=20,oy=10;const coin=$("coinMode").checked;
+  for(let x=0;x<NX;x++)for(let y=0;y<NY;y++){const k=x+","+y;const X=ox+x*C,Y=oy+y*C;
+    if(WALL.has(k)){el("rect",{x:X,y:Y,width:C,height:C,fill:"#5B5F6B"},s);continue;}
+    const qs=Q[k];const m=qs?Math.max(...qs):0;el("rect",{x:X,y:Y,width:C,height:C,fill:m>0?`rgba(46,125,79,${Math.min(.55,m/12)})`:"#fff",stroke:LINE,"stroke-width":1},s);
+    if(qs&&qs.some(v=>v!==0)&&!(x===GOAL[0]&&y===GOAL[1])){const a=qs.indexOf(m);txt(s,X+C/2,Y+C/2+8,ARROW[a],{"text-anchor":"middle","font-size":24,fill:INK});}}
+  const g=sk(s);
+  txt(s,ox+GOAL[0]*C+C/2,oy+GOAL[1]*C+C/2+8,"🏁",{"text-anchor":"middle","font-size":26});
+  if(coin)el("circle",{cx:ox+COIN[0]*C+C/2,cy:oy+COIN[1]*C+C/2,r:14,fill:"#F2B233",stroke:INK,"stroke-width":2},g);
+  if(lastPath.length){let d="";lastPath.forEach(([x,y],i)=>d+=(i?"L":"M")+(ox+x*C+C/2)+" "+(oy+y*C+C/2));el("path",{d,fill:"none",stroke:BLUE,"stroke-width":3,opacity:.6},s);}
+  el("rect",{x:ox+START[0]*C+14,y:oy+START[1]*C+16,width:32,height:28,rx:6,fill:"#ECEFF9",stroke:INK,"stroke-width":2},g);txt(s,ox+START[0]*C+30,oy+START[1]*C+37,"로봇",{"text-anchor":"middle","font-size":13});
+  const recent=hist.slice(-20),rate=recent.length?Math.round(recent.filter(Boolean).length/recent.length*100):0;
+  stats("qStats",[["해 본 판",ep+"판"],["최근 20판 도착률",recent.length?rate+"%":"—",recent.length&&rate<50?"alarm":""],["마지막 판 걸음 수",lastPath.length?(lastPath.length-1)+"걸음":"—"]]);
+  if(!ep)$("qHead").innerHTML="로봇은 길을 모릅니다. 아무렇게나 움직이며 보상을 받아 봅니다.";
+  else{const g2=episode(true);$("qHead").innerHTML=g2.ok?`지금 로봇이 가장 좋다고 믿는 길로 가면 <em>${g2.path.length-1}걸음</em>에 도착합니다.`:coin&&g2.coinUsed>2?`로봇이 깃발 대신 <em>동전 주변만 맴돕니다</em>. 동전을 주울 때마다 점수가 나오니까요.`:`아직 도착하는 길을 찾지 못했습니다. 더 연습시켜 보십시오.`;}}
+$("q1").addEventListener("click",()=>train(1));$("q50").addEventListener("click",()=>train(50));$("qReset").addEventListener("click",reset);
+$("coinMode").addEventListener("change",reset);reset();
+})();
+
+</script>
+</body>
+</html>

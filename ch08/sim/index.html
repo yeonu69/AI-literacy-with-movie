@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI 칩 체험실</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="8장 AI의 두뇌와 심장 · AI 칩 체험실. 코딩 없이 브라우저에서 해 보는 체험 시뮬레이터입니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 레이아웃: 연구 노트 한 권. 실험 세 개가 위에서 아래로 이어지고, 각 실험은 '조작판 + 펜 그림 + 읽는 법' 세 칸입니다. 종이 한 가지 모습만 씁니다. */
+:root{
+  --paper:#FBFAF6; --paper-2:#F3F1EA; --ink:#23262E; --ink-soft:#5B5F6B; --line:#C9C6BB;
+  --blue:#2F55A4; --violet:#5D6FB3; --lav:#ECEFF9;
+  --teal:#1E6E6E; --teal-bg:#E3F0F0; --amber:#9A5B12; --amber-bg:#FFF3DD;
+  --alarm:#C2412D; --alarm-bg:#FBE6E1; --ok:#2E7D4F;
+  --f-hand:"Gaegu","Nanum Pen Script","Gowun Dodum",cursive;
+  --f-body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --sketch:255px 12px 225px 14px / 14px 225px 12px 255px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.7;
+  background-image:linear-gradient(var(--paper-2) 1px,transparent 1px);background-size:100% 28px}
+.wrap{max-width:860px;margin:0 auto;padding-block:28px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--f-hand);font-weight:700;line-height:1.2;text-wrap:balance;margin:0}
+p{margin:0}
+.eyebrow{font-size:13px;letter-spacing:.06em;color:var(--violet);font-weight:700}
+header.top{display:flex;flex-direction:column;gap:14px}
+header.top h1{font-size:clamp(34px,6vw,50px);color:var(--blue)}
+header.top .lead{max-width:62ch;color:var(--ink-soft)}
+.film{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:16px 18px;display:flex;gap:16px;align-items:flex-start}
+.film svg{flex:0 0 56px}
+.film div{min-width:0}
+.film b{font-family:var(--f-hand);font-size:22px}
+.film p{font-size:15px;color:var(--ink-soft)}
+nav.jump{display:flex;flex-wrap:wrap;gap:8px}
+nav.jump a{font-family:var(--f-hand);font-size:19px;color:var(--ink);text-decoration:none;border:1.5px dashed var(--ink-soft);border-radius:999px;padding:2px 14px;background:var(--paper)}
+nav.jump a:hover,nav.jump a:focus-visible{border-style:solid;background:var(--lav)}
+section.exp{display:flex;flex-direction:column;gap:18px;scroll-margin-top:12px}
+.exp-head{display:flex;gap:14px;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:8px}
+.exp-head .no{font-family:var(--f-hand);font-size:44px;color:var(--violet);line-height:1}
+.exp-head h2{font-size:clamp(26px,4.4vw,34px)}
+.exp-head small{display:block;font-family:var(--f-body);font-size:13px;color:var(--ink-soft);font-weight:400}
+.q{font-size:17px;max-width:64ch}
+.panel{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:18px;display:flex;flex-direction:column;gap:16px}
+.controls{display:flex;flex-wrap:wrap;gap:18px 28px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ctl label,.ctl .lbl{font-size:14px;color:var(--ink-soft)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;cursor:pointer}
+.seg button,.btn{font-family:var(--f-hand);font-size:19px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);padding:2px 14px;border-radius:var(--sketch);line-height:1.4}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.btn:hover,.seg button:hover{background:var(--lav)}
+.seg button[aria-pressed="true"]:hover{background:var(--ink)}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn.primary:hover{background:#244585}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+input[type=range]{width:min(320px,100%);accent-color:var(--blue)}
+.val{font-family:var(--f-num);font-size:15px;color:var(--ink)}
+.check{display:flex;gap:8px;align-items:center;font-size:15px}
+.check input{width:18px;height:18px;accent-color:var(--blue)}
+.figure{overflow-x:auto}
+.figure svg{display:block;width:100%;height:auto;max-width:100%}
+.big{font-family:var(--f-hand);font-size:clamp(24px,4vw,30px);line-height:1.3}
+.big em{font-style:normal;color:var(--alarm);background:linear-gradient(transparent 60%,var(--alarm-bg) 60%)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{border-top:2px solid var(--ink);padding-top:6px}
+.stat span{display:block;font-size:13px;color:var(--ink-soft)}
+.stat b{font-family:var(--f-num);font-size:20px;font-variant-numeric:tabular-nums;font-weight:500}
+.stat.alarm b{color:var(--alarm)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;color:var(--ink-soft)}
+.legend i{display:inline-block;width:12px;height:12px;border:1.5px solid var(--ink);border-radius:50%;margin-right:6px;vertical-align:-1px}
+.box{border-radius:var(--sketch);padding:14px 16px;font-size:15px;max-width:none}
+.box b.t{display:block;font-family:var(--f-hand);font-size:20px;margin-bottom:2px}
+.box.teal{background:var(--teal-bg)} .box.teal b.t{color:var(--teal)}
+.box.amber{background:var(--amber-bg)} .box.amber b.t{color:var(--amber)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:640px){.two{grid-template-columns:minmax(0,1fr)}}
+table.cm{border-collapse:separate;border-spacing:6px;width:100%;font-size:14px}
+table.cm th{font-weight:400;color:var(--ink-soft);font-size:13px;text-align:center}
+table.cm td{border:2px solid var(--ink);border-radius:var(--sketch);text-align:center;padding:8px 4px;background:var(--paper)}
+table.cm td b{display:block;font-family:var(--f-num);font-size:24px;font-weight:500}
+table.cm td.tp{background:#E4F1E8} table.cm td.fp{background:var(--alarm-bg)} table.cm td.fn{background:var(--amber-bg)}
+.meter{display:flex;flex-direction:column;gap:10px}
+.meter .row{display:grid;grid-template-columns:5.5em minmax(0,1fr) 3.4em;gap:10px;align-items:center;font-size:14px}
+.meter .bar{height:14px;border:1.5px solid var(--ink);border-radius:8px;background:var(--paper);overflow:hidden}
+.meter .bar i{display:block;height:100%;background:var(--blue);transition:width .25s}
+.meter .num{font-family:var(--f-num);text-align:right;font-variant-numeric:tabular-nums}
+.missions{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.mission{border:2px dashed var(--ink-soft);border-radius:var(--sketch);padding:12px 14px;font-size:15px;background:var(--paper)}
+.mission.done{border-style:solid;border-color:var(--ok);background:#EEF6F0}
+.mission b{font-family:var(--f-hand);font-size:20px;display:block}
+.mission .st{font-size:13px;color:var(--ink-soft)}
+.mission.done .st{color:var(--ok);font-weight:700}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.log{font-family:var(--f-num);font-size:13px;line-height:1.6;max-height:180px;overflow:auto;background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--ink-soft)}
+.log div b{color:var(--ink);font-weight:500}
+.reveal{display:flex;flex-direction:column;gap:6px}
+footer{border-top:2px solid var(--ink);padding-top:14px;font-size:14px;color:var(--ink-soft);display:flex;flex-direction:column;gap:8px}
+footer a{color:var(--blue)}
+.links{display:flex;flex-wrap:wrap;gap:8px 18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+canvas.pix{display:block;image-rendering:pixelated;border:2px solid var(--ink);border-radius:6px;background:#fff;max-width:100%;height:auto;touch-action:none}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.row>*{min-width:0}
+.cap{font-size:13px;color:var(--ink-soft)}
+.mono{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+textarea,input[type=text]{font:inherit;font-size:16px;border:2px solid var(--ink);border-radius:8px;padding:8px 10px;background:var(--paper);color:var(--ink);width:100%}
+select{font:inherit;font-size:15px;border:2px solid var(--ink);border-radius:8px;padding:4px 8px;background:var(--paper);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--f-num);font-size:14px;border:1.5px solid var(--ink);border-radius:6px;padding:2px 8px;background:var(--paper)}
+.tag{display:inline-block;font-size:12px;border-radius:999px;padding:0 8px;border:1.5px solid currentColor}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="2.2"/></filter>
+    <symbol id="person" viewBox="0 0 20 30"><circle cx="10" cy="6.5" r="4.6"/><path d="M2.5 29 C2.5 18 5 13.5 10 13.5 S17.5 18 17.5 29 Z"/></symbol>
+  </defs>
+</svg>
+<div class="wrap">
+<header class="top">
+  <p class="eyebrow">영화관으로 간 AI 리터러시 · 8장 AI의 두뇌와 심장 · 체험실</p>
+  <h1>AI는 왜 GPU를 쓸까요?</h1>
+  <p class="lead">코드는 없습니다. 버튼을 누르고 막대를 밀어 보기만 하면 됩니다. CPU와 GPU의 경주, 계산보다 느린 메모리, 데이터센터가 먹는 전기를 직접 계산해 봅니다.</p>
+  <div class="film">
+    <svg viewBox="0 0 56 56" aria-hidden="true" style="filter:url(#rough)"><rect x="4" y="10" width="48" height="36" rx="3" fill="none" stroke="#23262E" stroke-width="2.4"/><g fill="#23262E"><rect x="8" y="14" width="5" height="4"/><rect x="8" y="24" width="5" height="4"/><rect x="8" y="34" width="5" height="4"/><rect x="43" y="14" width="5" height="4"/><rect x="43" y="24" width="5" height="4"/><rect x="43" y="34" width="5" height="4"/></g><circle cx="28" cy="28" r="7" fill="none" stroke="#C2412D" stroke-width="2.4"/><circle cx="28" cy="28" r="2.2" fill="#C2412D"/></svg>
+    <div>
+      <b>「트랜센던스」(2014)</b>
+      <p>인공지능 과학자 윌의 생각은 거대한 컴퓨터로 옮겨집니다. 컴퓨터 속의 윌은 더 많은 계산 능력을 원하고, 사막 땅 밑에 거대한 데이터센터를 짓습니다. 땅 위에는 끝없는 태양광 패널이 펼쳐집니다.</p>
+    </div>
+  </div>
+  <nav class="jump" aria-label="실험 바로 가기"><a href="#race">실험 1 · CPU와 GPU의 색칠 경주</a><a href="#memory">실험 2 · 계산보다 느린 배달</a><a href="#power">실험 3 · 데이터센터의 전기</a></nav>
+</header>
+<section class="exp" id="race">
+  <div class="exp-head"><span class="no">1</span><h2>CPU와 GPU의 색칠 경주<small>책 8장 3-1, 3-2절 · 곱하고 더하기, CPU와 GPU</small></h2></div>
+  <p class="q">CPU는 똑똑하고 빠른 일꾼 몇 명, GPU는 단순하고 느린 일꾼 수백 명입니다. 두 팀에게 같은 일을 시켜 보십시오. 첫째는 칸마다 따로 칠해도 되는 그림이고, 둘째는 앞 칸의 답이 있어야 다음 칸을 칠할 수 있는 줄 계산입니다.</p>
+  <div class="panel">
+    <div class="btnrow"><button type="button" class="btn primary" id="raceA">그림 색칠 (나눠서 할 수 있는 일)</button><button type="button" class="btn" id="raceB">줄 계산 (순서가 있는 일)</button></div>
+    <div class="two">
+      <div class="reveal"><span class="cap">CPU · 빠른 일꾼 4명 (한 명이 1초에 1칸)</span><canvas class="pix" id="cvCPU" width="240" height="160" style="width:100%;image-rendering:auto"></canvas><span class="big mono" id="tCPU" style="font-size:22px">0.0초</span></div>
+      <div class="reveal"><span class="cap">GPU · 느린 일꾼 128명 (한 명이 4초에 1칸)</span><canvas class="pix" id="cvGPU" width="240" height="160" style="width:100%;image-rendering:auto"></canvas><span class="big mono" id="tGPU" style="font-size:22px">0.0초</span></div>
+    </div>
+    <p class="big" id="raceHead">위의 두 단추 중 하나를 눌러 경주를 시작하십시오.</p>
+  </div>
+  <div class="box teal"><b class="t">읽는 법</b>AI의 계산은 대부분 '곱하고 더하기'를 수없이 따로따로 하는 일입니다. 서로 기다릴 필요가 없으니 일꾼이 많은 GPU가 이깁니다. 하지만 앞의 답이 있어야 다음을 할 수 있는 일에서는 일꾼이 많아도 소용이 없습니다. 그래서 컴퓨터에는 둘 다 필요합니다.</div>
+</section>
+
+<section class="exp" id="memory">
+  <div class="exp-head"><span class="no">2</span><h2>계산보다 느린 배달<small>책 8장 3-4절 · 메모리 벽, HBM</small></h2></div>
+  <p class="q">아무리 손이 빠른 요리사(계산 장치)도 재료(데이터)가 늦게 오면 기다려야 합니다. 요리 속도와 재료 배달 속도를 바꿔 보십시오. 요리사가 얼마나 놀고 있는지 보입니다.</p>
+  <div class="panel">
+    <div class="controls">
+      <div class="ctl"><label for="comp">요리 속도 (계산) <span class="val" id="compVal"></span></label><input type="range" id="comp" min="1" max="20" value="10"></div>
+      <div class="ctl"><label for="bw">재료 배달 속도 (메모리) <span class="val" id="bwVal"></span></label><input type="range" id="bw" min="1" max="20" value="2"></div>
+      <button type="button" class="btn primary" id="hbm">배달 길을 고층 창고로 바꾸기 (HBM)</button>
+    </div>
+    <div class="figure" aria-hidden="true"><svg id="kitchen" viewBox="0 0 640 180"></svg></div>
+    <p class="big" id="memHead"></p>
+  </div>
+  <div class="box amber"><b class="t">생각해 볼 것</b>AI 칩이 빨라지는 속도를 메모리가 따라가지 못하는 현상을 <b>메모리 벽</b>이라고 합니다. HBM은 메모리 칩을 아파트처럼 층층이 쌓고 계산 칩 바로 옆에 붙여, 배달 길을 넓고 짧게 만든 메모리입니다. 한국 기업들이 이 HBM을 세계에서 가장 많이 만듭니다.</div>
+</section>
+
+<section class="exp" id="power">
+  <div class="exp-head"><span class="no">3</span><h2>데이터센터의 전기<small>책 8장 3-8절 · 전력과 냉각, PUE</small></h2></div>
+  <p class="q">AI 데이터센터 하나를 지어 보겠습니다. GPU를 몇 개 넣을지, 칩 하나가 전기를 얼마나 먹는지, 식히는 데 전기가 얼마나 더 드는지(PUE)를 정해 보십시오.</p>
+  <div class="panel">
+    <div class="controls">
+      <div class="ctl"><label for="ngpu">GPU 수 <span class="val" id="ngpuVal"></span></label><input type="range" id="ngpu" min="0" max="100" value="50"></div>
+      <div class="ctl"><label for="watt">GPU 하나의 전력 (주변 장치 포함) <span class="val" id="wattVal"></span></label><input type="range" id="watt" min="500" max="2000" step="50" value="1000"></div>
+      <div class="ctl"><label for="pue">PUE (1에 가까울수록 알뜰) <span class="val" id="pueVal"></span></label><input type="range" id="pue" min="1.05" max="2" step="0.05" value="1.3"></div>
+    </div>
+    <div class="figure" aria-hidden="true"><svg id="plant" viewBox="0 0 640 150"></svg></div>
+    <div class="stats" id="powStats"></div>
+  </div>
+  <div class="box teal"><b class="t">읽는 법</b>PUE는 '데이터센터 전체 전기 ÷ 컴퓨터 장비 전기'입니다. 1.3이면 계산에 100을 쓸 때 식히는 데 30을 더 씁니다. 큰 AI 데이터센터는 100메가와트에서 1기가와트를 넘게 씁니다. 1기가와트는 큰 원자력 발전소 한 기가 내는 전기와 맞먹습니다. 숫자는 대략 계산한 값입니다.</div>
+</section>
+
+<footer>
+  <p>이 체험실의 숫자는 원리를 보여 주려고 만든 가상의 값입니다.</p>
+  <div class="links"><a href="https://yeonu69.github.io/AI-literacy-with-movie/ch08/lab/">8장 코랩 실습 열기</a><a href="https://yeonu69.github.io/AI-literacy-with-movie/ch08/t1/">「트랜센던스」 예고편</a><a href="https://yeonu69.github.io/AI-literacy-with-movie/sim/">다른 장 체험실 보기</a></div>
+  <p>「영화관으로 간 AI 리터러시」 웹부록 · AInsight@Movie</p>
+</footer>
+</div>
+<script>
+const NS="http://www.w3.org/2000/svg";
+const INK="#23262E", ALARM="#C2412D", GREY="#E6E3DA", SOFT="#5B5F6B", BLUE="#2F55A4", TEAL="#1E6E6E", AMBER="#9A5B12", OK="#2E7D4F", PAPER="#FBFAF6", VIOLET="#5D6FB3", LINE="#C9C6BB";
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n).toLocaleString("ko-KR");
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function txt(parent,x,y,s,attrs){const t=el("text",Object.assign({x,y,"font-family":"Gaegu, cursive","font-size":18,fill:INK},attrs||{}),parent);t.textContent=s;return t;}
+function sk(parent){return el("g",{style:"filter:url(#rough)"},parent);}
+function rng(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+function seg(id,cb){const g=$(id);g.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{g.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));cb(b.dataset.v,b);}));}
+function stats(id,items){$(id).innerHTML=items.map(([l,v,c])=>`<div class="stat ${c||""}"><span>${l}</span><b>${v}</b></div>`).join("");}
+
+(function(){
+/* 실험 1 */
+const COLS=24,ROWS=16,CELLS=COLS*ROWS,CHAIN=48;let timer=null;
+function setup(cv){const x=cv.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,240,160);x.strokeStyle="#EEE";for(let i=0;i<=COLS;i++){x.beginPath();x.moveTo(i*10,0);x.lineTo(i*10,160);x.stroke();}for(let j=0;j<=ROWS;j++){x.beginPath();x.moveTo(0,j*10);x.lineTo(240,j*10);x.stroke();}return x;}
+function color(i){const c=i%COLS,r=Math.floor(i/COLS);const d=Math.hypot(c-12,r-8);return d<5?"#C2412D":d<7?"#F2B233":r>11?"#2E7D4F":"#9DB5E0";}
+function race(kind){if(timer)clearInterval(timer);const xc=setup($("cvCPU")),xg=setup($("cvGPU"));
+  const total=kind==="A"?CELLS:CHAIN;
+  // 초당 처리량: A는 CPU 4칸, GPU 32칸 / B는 CPU 1칸, GPU 0.25칸
+  const rate=kind==="A"?{cpu:4,gpu:32}:{cpu:1,gpu:0.25};
+  let t=0,dc=0,dg=0,doneC=null,doneG=null;const dt=0.5;
+  const fin={cpu:total/rate.cpu,gpu:total/rate.gpu};
+  function paint(x,from,to){for(let i=Math.floor(from);i<Math.floor(to)&&i<total;i++){if(kind==="A"){x.fillStyle=color(i);x.fillRect((i%COLS)*10+1,Math.floor(i/COLS)*10+1,9,9);}else{x.fillStyle=i%2?"#2F55A4":"#5D6FB3";const c=i%COLS,r=Math.floor(i/COLS)*2+6;x.fillRect(c*10+1,r*10+1,9,9);if(c<COLS-1&&i<total-1){x.fillStyle="#23262E";x.fillRect(c*10+9,r*10+4,2,2);}}}}
+  const speed=Math.max(fin.cpu,fin.gpu)/60; // 약 6초 안에 끝나게 화면 시간을 줄입니다
+  timer=setInterval(()=>{t+=speed;const nc=Math.min(total,rate.cpu*t),ng=Math.min(total,rate.gpu*t);paint(xc,dc,nc);paint(xg,dg,ng);dc=nc;dg=ng;
+    $("tCPU").textContent=(dc>=total?fin.cpu:t).toFixed(1)+"초"+(dc>=total?" · 끝":"");$("tGPU").textContent=(dg>=total?fin.gpu:t).toFixed(1)+"초"+(dg>=total?" · 끝":"");
+    if(dc>=total&&dg>=total){clearInterval(timer);
+      $("raceHead").innerHTML=kind==="A"?`그림 색칠은 GPU가 <em>${(fin.cpu/fin.gpu).toFixed(0)}배</em> 빨리 끝냈습니다. 일꾼 128명이 동시에 칠했기 때문입니다.`:`줄 계산은 CPU가 <em>${(fin.gpu/fin.cpu).toFixed(0)}배</em> 빨랐습니다. 순서가 있는 일은 한 번에 한 칸씩밖에 못 합니다.`;}},100);
+  $("raceHead").textContent=kind==="A"?"384칸을 칠하는 중입니다…":"48칸을 앞에서부터 차례로 계산하는 중입니다…";}
+$("raceA").addEventListener("click",()=>race("A"));$("raceB").addEventListener("click",()=>race("B"));
+setup($("cvCPU"));setup($("cvGPU"));
+
+/* 실험 2 */
+function mem(){const c=+$("comp").value,b=+$("bw").value;$("compVal").textContent="1초에 "+c+"접시";$("bwVal").textContent="1초에 "+b+"상자";
+  const used=Math.min(c,b),idle=Math.round((1-used/c)*100);
+  const s=$("kitchen");s.innerHTML="";const g=sk(s);
+  el("rect",{x:20,y:40,width:150,height:100,rx:10,fill:"#F3F1EA",stroke:INK,"stroke-width":2},g);txt(s,95,30,"메모리 창고",{"text-anchor":"middle","font-size":17});
+  const lanes=Math.max(1,Math.round(b/2));for(let i=0;i<Math.min(lanes,10);i++){const y=50+i*(80/Math.max(1,Math.min(lanes,10)));el("line",{x1:170,y1:y+4,x2:440,y2:y+4,stroke:BLUE,"stroke-width":3,opacity:.5},s);el("rect",{x:200+((i*47)%200),y:y-2,width:16,height:12,fill:"#FFF3DD",stroke:INK,"stroke-width":1},s);}
+  txt(s,305,160,`배달 길 ${Math.min(lanes,10)}줄`,{"text-anchor":"middle","font-size":15,fill:SOFT});
+  el("rect",{x:440,y:40,width:180,height:100,rx:10,fill:"#ECEFF9",stroke:INK,"stroke-width":2},g);txt(s,530,30,"계산 장치 (요리사)",{"text-anchor":"middle","font-size":17});
+  el("rect",{x:460,y:110,width:140,height:16,rx:4,fill:"#fff",stroke:INK,"stroke-width":1.5},s);el("rect",{x:460,y:110,width:140*used/c,height:16,rx:4,fill:OK},s);
+  txt(s,530,90,idle>0?"🕐 재료 기다리는 중":"🔥 쉬지 않고 요리",{"text-anchor":"middle","font-size":16});
+  $("memHead").innerHTML=idle>0?`요리사가 시간의 <em>${idle}%</em>를 재료를 기다리며 보냅니다. 계산이 빨라도 배달이 느리면 소용이 없습니다.`:`재료가 넉넉히 옵니다. 이제 요리 속도가 한계입니다.`;}
+["comp","bw"].forEach(id=>$(id).addEventListener("input",mem));
+$("hbm").addEventListener("click",()=>{$("bw").value=Math.min(20,(+$("bw").value)*8);mem();});mem();
+
+/* 실험 3 */
+function pow(){const N=Math.round(1000*Math.pow(10,(+$("ngpu").value)/100*2.7)/100)*100;
+  const w=+$("watt").value,p=+$("pue").value;
+  $("ngpuVal").textContent=fmt(N)+"개";$("wattVal").textContent=fmt(w)+"W";$("pueVal").textContent=p.toFixed(2);
+  const itMW=N*w/1e6,totMW=itMW*p,coolMW=totMW-itMW,yearGWh=totMW*8760/1000,nuke=totMW/1000;
+  stats("powStats",[["컴퓨터 장비 전력",itMW.toFixed(1)+"MW"],["식히기 등 나머지",coolMW.toFixed(1)+"MW","alarm"],["데이터센터 전체",totMW.toFixed(1)+"MW"],["1년 내내 쓰면",fmt(yearGWh)+"GWh"],["원자력 발전소 1기(1GW) 대비",(nuke*100).toFixed(nuke<0.1?1:0)+"%"]]);
+  const s=$("plant");s.innerHTML="";const g=sk(s);const W=600*Math.min(1,nuke);
+  el("rect",{x:20,y:50,width:600,height:40,rx:8,fill:"#fff",stroke:INK,"stroke-width":2},g);
+  el("rect",{x:20,y:50,width:W*itMW/totMW,height:40,rx:8,fill:BLUE},s);el("rect",{x:20+W*itMW/totMW,y:50,width:W*coolMW/totMW,height:40,fill:ALARM,opacity:.8},s);
+  txt(s,20,36,"원자력 발전소 한 기(1GW)가 내는 전기를 이 막대 전체라고 하면",{"font-size":15,"font-family":"Gowun Dodum, sans-serif",fill:SOFT});
+  txt(s,20,116,"■ 계산",{"font-size":15,fill:BLUE});txt(s,90,116,"■ 식히기 등",{"font-size":15,fill:ALARM});
+  if(nuke>1)txt(s,620,116,`발전소 ${nuke.toFixed(1)}기가 필요합니다`,{"text-anchor":"end","font-size":17,fill:ALARM});}
+["ngpu","watt","pue"].forEach(id=>$(id).addEventListener("input",pow));pow();
+})();
+
+</script>
+</body>
+</html>
