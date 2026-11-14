@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>감성 AI 체험실</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="11장 마음을 가진 기계? · 감성 AI 체험실. 코딩 없이 브라우저에서 해 보는 체험 시뮬레이터입니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 레이아웃: 연구 노트 한 권. 실험 세 개가 위에서 아래로 이어지고, 각 실험은 '조작판 + 펜 그림 + 읽는 법' 세 칸입니다. 종이 한 가지 모습만 씁니다. */
+:root{
+  --paper:#FBFAF6; --paper-2:#F3F1EA; --ink:#23262E; --ink-soft:#5B5F6B; --line:#C9C6BB;
+  --blue:#2F55A4; --violet:#5D6FB3; --lav:#ECEFF9;
+  --teal:#1E6E6E; --teal-bg:#E3F0F0; --amber:#9A5B12; --amber-bg:#FFF3DD;
+  --alarm:#C2412D; --alarm-bg:#FBE6E1; --ok:#2E7D4F;
+  --f-hand:"Gaegu","Nanum Pen Script","Gowun Dodum",cursive;
+  --f-body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --sketch:255px 12px 225px 14px / 14px 225px 12px 255px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.7;
+  background-image:linear-gradient(var(--paper-2) 1px,transparent 1px);background-size:100% 28px}
+.wrap{max-width:860px;margin:0 auto;padding-block:28px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--f-hand);font-weight:700;line-height:1.2;text-wrap:balance;margin:0}
+p{margin:0}
+.eyebrow{font-size:13px;letter-spacing:.06em;color:var(--violet);font-weight:700}
+header.top{display:flex;flex-direction:column;gap:14px}
+header.top h1{font-size:clamp(34px,6vw,50px);color:var(--blue)}
+header.top .lead{max-width:62ch;color:var(--ink-soft)}
+.film{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:16px 18px;display:flex;gap:16px;align-items:flex-start}
+.film svg{flex:0 0 56px}
+.film div{min-width:0}
+.film b{font-family:var(--f-hand);font-size:22px}
+.film p{font-size:15px;color:var(--ink-soft)}
+nav.jump{display:flex;flex-wrap:wrap;gap:8px}
+nav.jump a{font-family:var(--f-hand);font-size:19px;color:var(--ink);text-decoration:none;border:1.5px dashed var(--ink-soft);border-radius:999px;padding:2px 14px;background:var(--paper)}
+nav.jump a:hover,nav.jump a:focus-visible{border-style:solid;background:var(--lav)}
+section.exp{display:flex;flex-direction:column;gap:18px;scroll-margin-top:12px}
+.exp-head{display:flex;gap:14px;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:8px}
+.exp-head .no{font-family:var(--f-hand);font-size:44px;color:var(--violet);line-height:1}
+.exp-head h2{font-size:clamp(26px,4.4vw,34px)}
+.exp-head small{display:block;font-family:var(--f-body);font-size:13px;color:var(--ink-soft);font-weight:400}
+.q{font-size:17px;max-width:64ch}
+.panel{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:18px;display:flex;flex-direction:column;gap:16px}
+.controls{display:flex;flex-wrap:wrap;gap:18px 28px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ctl label,.ctl .lbl{font-size:14px;color:var(--ink-soft)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;cursor:pointer}
+.seg button,.btn{font-family:var(--f-hand);font-size:19px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);padding:2px 14px;border-radius:var(--sketch);line-height:1.4}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.btn:hover,.seg button:hover{background:var(--lav)}
+.seg button[aria-pressed="true"]:hover{background:var(--ink)}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn.primary:hover{background:#244585}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+input[type=range]{width:min(320px,100%);accent-color:var(--blue)}
+.val{font-family:var(--f-num);font-size:15px;color:var(--ink)}
+.check{display:flex;gap:8px;align-items:center;font-size:15px}
+.check input{width:18px;height:18px;accent-color:var(--blue)}
+.figure{overflow-x:auto}
+.figure svg{display:block;width:100%;height:auto;max-width:100%}
+.big{font-family:var(--f-hand);font-size:clamp(24px,4vw,30px);line-height:1.3}
+.big em{font-style:normal;color:var(--alarm);background:linear-gradient(transparent 60%,var(--alarm-bg) 60%)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{border-top:2px solid var(--ink);padding-top:6px}
+.stat span{display:block;font-size:13px;color:var(--ink-soft)}
+.stat b{font-family:var(--f-num);font-size:20px;font-variant-numeric:tabular-nums;font-weight:500}
+.stat.alarm b{color:var(--alarm)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;color:var(--ink-soft)}
+.legend i{display:inline-block;width:12px;height:12px;border:1.5px solid var(--ink);border-radius:50%;margin-right:6px;vertical-align:-1px}
+.box{border-radius:var(--sketch);padding:14px 16px;font-size:15px;max-width:none}
+.box b.t{display:block;font-family:var(--f-hand);font-size:20px;margin-bottom:2px}
+.box.teal{background:var(--teal-bg)} .box.teal b.t{color:var(--teal)}
+.box.amber{background:var(--amber-bg)} .box.amber b.t{color:var(--amber)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:640px){.two{grid-template-columns:minmax(0,1fr)}}
+table.cm{border-collapse:separate;border-spacing:6px;width:100%;font-size:14px}
+table.cm th{font-weight:400;color:var(--ink-soft);font-size:13px;text-align:center}
+table.cm td{border:2px solid var(--ink);border-radius:var(--sketch);text-align:center;padding:8px 4px;background:var(--paper)}
+table.cm td b{display:block;font-family:var(--f-num);font-size:24px;font-weight:500}
+table.cm td.tp{background:#E4F1E8} table.cm td.fp{background:var(--alarm-bg)} table.cm td.fn{background:var(--amber-bg)}
+.meter{display:flex;flex-direction:column;gap:10px}
+.meter .row{display:grid;grid-template-columns:5.5em minmax(0,1fr) 3.4em;gap:10px;align-items:center;font-size:14px}
+.meter .bar{height:14px;border:1.5px solid var(--ink);border-radius:8px;background:var(--paper);overflow:hidden}
+.meter .bar i{display:block;height:100%;background:var(--blue);transition:width .25s}
+.meter .num{font-family:var(--f-num);text-align:right;font-variant-numeric:tabular-nums}
+.missions{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.mission{border:2px dashed var(--ink-soft);border-radius:var(--sketch);padding:12px 14px;font-size:15px;background:var(--paper)}
+.mission.done{border-style:solid;border-color:var(--ok);background:#EEF6F0}
+.mission b{font-family:var(--f-hand);font-size:20px;display:block}
+.mission .st{font-size:13px;color:var(--ink-soft)}
+.mission.done .st{color:var(--ok);font-weight:700}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.log{font-family:var(--f-num);font-size:13px;line-height:1.6;max-height:180px;overflow:auto;background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--ink-soft)}
+.log div b{color:var(--ink);font-weight:500}
+.reveal{display:flex;flex-direction:column;gap:6px}
+footer{border-top:2px solid var(--ink);padding-top:14px;font-size:14px;color:var(--ink-soft);display:flex;flex-direction:column;gap:8px}
+footer a{color:var(--blue)}
+.links{display:flex;flex-wrap:wrap;gap:8px 18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+canvas.pix{display:block;image-rendering:pixelated;border:2px solid var(--ink);border-radius:6px;background:#fff;max-width:100%;height:auto;touch-action:none}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.row>*{min-width:0}
+.cap{font-size:13px;color:var(--ink-soft)}
+.mono{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+textarea,input[type=text]{font:inherit;font-size:16px;border:2px solid var(--ink);border-radius:8px;padding:8px 10px;background:var(--paper);color:var(--ink);width:100%}
+select{font:inherit;font-size:15px;border:2px solid var(--ink);border-radius:8px;padding:4px 8px;background:var(--paper);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--f-num);font-size:14px;border:1.5px solid var(--ink);border-radius:6px;padding:2px 8px;background:var(--paper)}
+.tag{display:inline-block;font-size:12px;border-radius:999px;padding:0 8px;border:1.5px solid currentColor}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="2.2"/></filter>
+    <symbol id="person" viewBox="0 0 20 30"><circle cx="10" cy="6.5" r="4.6"/><path d="M2.5 29 C2.5 18 5 13.5 10 13.5 S17.5 18 17.5 29 Z"/></symbol>
+  </defs>
+</svg>
+<div class="wrap">
+<header class="top">
+  <p class="eyebrow">영화관으로 간 AI 리터러시 · 11장 마음을 가진 기계? · 체험실</p>
+  <h1>기계는 마음을 읽을 수 있을까요?</h1>
+  <p class="lead">코드는 없습니다. 문장을 쓰고 막대를 밀어 보기만 하면 됩니다. 기계가 글에서 감정을 읽는 방법과 그 한계, 사람을 닮을수록 생기는 '불쾌한 골짜기'를 겪어 봅니다.</p>
+  <div class="film">
+    <svg viewBox="0 0 56 56" aria-hidden="true" style="filter:url(#rough)"><rect x="4" y="10" width="48" height="36" rx="3" fill="none" stroke="#23262E" stroke-width="2.4"/><g fill="#23262E"><rect x="8" y="14" width="5" height="4"/><rect x="8" y="24" width="5" height="4"/><rect x="8" y="34" width="5" height="4"/><rect x="43" y="14" width="5" height="4"/><rect x="43" y="24" width="5" height="4"/><rect x="43" y="34" width="5" height="4"/></g><circle cx="28" cy="28" r="7" fill="none" stroke="#C2412D" stroke-width="2.4"/><circle cx="28" cy="28" r="2.2" fill="#C2412D"/></svg>
+    <div>
+      <b>「A.I.」(2001)</b>
+      <p>사람을 진심으로 사랑하도록 만들어진 아이 로봇 데이비드는 엄마 모니카를 사랑하게 됩니다. 하지만 모니카에게 데이비드는 처음에 너무 반듯하고 낯선 존재였습니다. 기계의 감정은 진짜일까요, 흉내일까요?</p>
+    </div>
+  </div>
+  <nav class="jump" aria-label="실험 바로 가기"><a href="#sentiment">실험 1 · 글에서 감정 읽기</a><a href="#valley">실험 2 · 불쾌한 골짜기</a></nav>
+</header>
+<section class="exp" id="sentiment">
+  <div class="exp-head"><span class="no">1</span><h2>글에서 감정 읽기<small>책 11장 3-1, 3-3절 · 감성 컴퓨팅, 글의 감정 분석</small></h2></div>
+  <p class="q">가장 단순한 감정 분석기는 '좋다'는 +, '슬프다'는 − 하는 식으로 단어 점수를 더합니다. 예시 문장을 눌러 보거나 직접 써 보십시오. 어떤 문장에서 기계가 속을까요?</p>
+  <div class="panel">
+    <div class="chips" id="examples"></div>
+    <textarea id="sent" rows="2" aria-label="분석할 문장">오늘 정말 행복해요</textarea>
+    <div class="reveal"><span class="cap">기계가 찾은 단어와 점수</span><div class="chips" id="hits"></div></div>
+    <div class="figure" aria-hidden="true"><svg id="gauge" viewBox="0 0 640 90"></svg></div>
+    <p class="big" id="sentHead"></p>
+  </div>
+  <div class="box teal"><b class="t">읽는 법</b>'재미없다'처럼 뒤에 붙은 말이 뜻을 뒤집거나, '참 잘했네요'처럼 비꼬는 말은 단어만 세는 기계를 쉽게 속입니다. 요즘의 감정 분석은 4장의 언어 모델처럼 문맥 전체를 보아서 훨씬 정확합니다. 그래도 사람의 속마음까지 읽는 것은 아닙니다. 기계는 겉으로 드러난 신호를 읽을 뿐입니다.</div>
+</section>
+
+<section class="exp" id="valley">
+  <div class="exp-head"><span class="no">2</span><h2>불쾌한 골짜기<small>책 11장 3-5절 · 불쾌한 골짜기</small></h2></div>
+  <p class="q">로봇이 사람을 닮을수록 우리는 더 친근하게 느낍니다. 그런데 거의 사람 같아졌을 때 갑자기 섬뜩해지는 구간이 있습니다. 막대를 밀어 얼굴을 바꾸고, 내 느낌도 눌러 기록해 보십시오.</p>
+  <div class="panel">
+    <div class="ctl"><label for="human">사람을 닮은 정도 <span class="val" id="humanVal"></span></label><input type="range" id="human" min="0" max="100" value="30" style="width:100%"></div>
+    <div class="two">
+      <div class="figure" aria-hidden="true"><svg id="face" viewBox="0 0 240 240" style="max-width:280px;margin:auto"></svg></div>
+      <div class="figure" aria-hidden="true"><svg id="curve" viewBox="0 0 320 240"></svg></div>
+    </div>
+    <div class="btnrow"><span class="cap">내 느낌:</span><button type="button" class="btn" data-f="1">친근해요</button><button type="button" class="btn" data-f="0">그저 그래요</button><button type="button" class="btn" data-f="-1">섬뜩해요</button></div>
+    <p class="big" id="valleyHead"></p>
+  </div>
+  <div class="box amber"><b class="t">생각해 볼 것</b>1970년 일본의 로봇 공학자 모리 마사히로가 이 골짜기를 처음 말했습니다. 영화 속 데이비드는 골짜기를 건너온 아이일까요, 골짜기에 서 있는 아이일까요? 돌봄 로봇을 만든다면 일부러 사람과 덜 닮게 만드는 것이 나을 수도 있습니다. 그래프의 곡선은 모리가 그린 모양을 흉내 낸 것입니다.</div>
+</section>
+
+<footer>
+  <p>이 체험실의 숫자는 원리를 보여 주려고 만든 가상의 값입니다.</p>
+  <div class="links"><a href="https://yeonu69.github.io/AI-literacy-with-movie/ch11/lab/">11장 코랩 실습 열기</a><a href="https://yeonu69.github.io/AI-literacy-with-movie/ch11/t1/">「A.I.」 예고편</a><a href="https://yeonu69.github.io/AI-literacy-with-movie/sim/">다른 장 체험실 보기</a></div>
+  <p>「영화관으로 간 AI 리터러시」 웹부록 · AInsight@Movie</p>
+</footer>
+</div>
+<script>
+const NS="http://www.w3.org/2000/svg";
+const INK="#23262E", ALARM="#C2412D", GREY="#E6E3DA", SOFT="#5B5F6B", BLUE="#2F55A4", TEAL="#1E6E6E", AMBER="#9A5B12", OK="#2E7D4F", PAPER="#FBFAF6", VIOLET="#5D6FB3", LINE="#C9C6BB";
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n).toLocaleString("ko-KR");
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function txt(parent,x,y,s,attrs){const t=el("text",Object.assign({x,y,"font-family":"Gaegu, cursive","font-size":18,fill:INK},attrs||{}),parent);t.textContent=s;return t;}
+function sk(parent){return el("g",{style:"filter:url(#rough)"},parent);}
+function rng(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+function seg(id,cb){const g=$(id);g.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{g.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));cb(b.dataset.v,b);}));}
+function stats(id,items){$(id).innerHTML=items.map(([l,v,c])=>`<div class="stat ${c||""}"><span>${l}</span><b>${v}</b></div>`).join("");}
+
+(function(){
+/* 실험 1 */
+const LEX=[["행복",3],["사랑",3],["기쁘",3],["기뻐",3],["최고",3],["좋",2],["고마",2],["감사",2],["재미",2],["멋지",2],["멋져",2],["즐거",2],["신나",2],["잘했",1],["편안",1],["편하",1],["웃",1],
+ ["최악",-3],["슬프",-3],["슬퍼",-3],["화나",-3],["화났",-3],["짜증",-3],["싫",-2],["외로",-2],["무섭",-2],["무서",-2],["아프",-2],["아파",-2],["실망",-2],["지루",-2],["힘들",-2],["버리",-2],["별로",-2],["걱정",-1]];
+const NEG=["없","않","안 ","못 ","아니"],INT=["정말","너무","아주","진짜","참"];
+const EX=["오늘 정말 행복해요","너무 슬프고 외로워요","영화가 별로 재미없었어요","참 잘했네요. 덕분에 일이 두 배가 됐어요","엄마, 사랑해요. 나를 버리지 마세요","무섭지 않아요, 괜찮아요"];
+$("examples").innerHTML=EX.map((e,i)=>`<button type="button" class="chip" data-i="${i}" style="cursor:pointer">${e}</button>`).join("");
+$("examples").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{$("sent").value=EX[+b.dataset.i];run();}));
+function run(){const t=$("sent").value;const words=t.split(/\s+/).filter(Boolean);let total=0;const hits=[];
+  words.forEach((w,i)=>{const m=LEX.find(([k])=>w.includes(k));if(!m)return;let v=m[1],note="";
+    const prev=words[i-1]||"",next=words[i+1]||"";
+    if(INT.some(k=>prev.includes(k))){v*=1.5;note+=` ×1.5('${prev}')`;}
+    const negHere=NEG.some(k=>k.trim()!==""&&w.slice(w.indexOf(m[0])+m[0].length).includes(k.trim()));
+    if(negHere||["안","못"].includes(prev)||next.startsWith("않")||next.startsWith("없")){v=-v;note+=" 뒤집힘";}
+    total+=v;hits.push(`<span class="chip" style="border-color:${v>0?OK:ALARM};color:${v>0?OK:ALARM}">${w} ${v>0?"+":""}${v}${note}</span>`);});
+  $("hits").innerHTML=hits.join("")||`<span class="cap">아는 단어가 없습니다. 기계는 '보통'이라고 답합니다.</span>`;
+  const s=$("gauge");s.innerHTML="";const X=v=>320+Math.max(-6,Math.min(6,v))*48;
+  const gr=el("linearGradient",{id:"gg"},s);el("stop",{offset:"0",  "stop-color":"#C2412D"},gr);el("stop",{offset:".5","stop-color":"#F3F1EA"},gr);el("stop",{offset:"1","stop-color":"#2E7D4F"},gr);
+  el("rect",{x:32,y:30,width:576,height:20,rx:10,fill:"url(#gg)",stroke:INK,"stroke-width":1.5},s);
+  txt(s,32,76,"부정",{"font-size":15,fill:ALARM});txt(s,320,76,"보통",{"text-anchor":"middle","font-size":15,fill:SOFT});txt(s,608,76,"긍정",{"text-anchor":"end","font-size":15,fill:OK});
+  el("path",{d:`M${X(total)} 26 l-8 -14 h16 z`,fill:INK},s);
+  const lab=total>1?"긍정":total<-1?"부정":"보통";
+  $("sentHead").innerHTML=`점수 합계 ${total>0?"+":""}${total} · 기계의 판단: <em>${lab}</em>`;}
+$("sent").addEventListener("input",run);run();
+
+/* 실험 2 */
+const PTS=[[0,0],[25,.25],[50,.5],[68,.62],[76,.35],[82,-.35],[86,-.6],[91,-.2],[96,.6],[100,.95]];
+function aff(x){for(let i=1;i<PTS.length;i++)if(x<=PTS[i][0]){const[a,b]=[PTS[i-1],PTS[i]];return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);}return 1;}
+const ratings=[];
+function lerp(a,b,t){return a+(b-a)*Math.max(0,Math.min(1,t));}
+function drawFace(h){const s=$("face");s.innerHTML="";const t=h/100;const g=sk(s);
+  const skin=h<40?"#C9CCD3":h<75?"#E8DCD2":"#F1D3BF";const rx=lerp(8,95,t*1.4);
+  el("rect",{x:40,y:30,width:160,height:190,rx,ry:Math.min(rx,110),fill:skin,stroke:INK,"stroke-width":3},g);
+  if(h<30){el("line",{x1:120,y1:30,x2:120,y2:8,stroke:INK,"stroke-width":3},g);el("circle",{cx:120,cy:8,r:6,fill:ALARM},g);}
+  if(h>58)el("path",{d:`M44 ${lerp(110,85,(t-.58)/.4)} Q60 18 120 22 Q180 18 196 ${lerp(110,85,(t-.58)/.4)} Q190 40 120 44 Q50 40 44 ${lerp(110,85,(t-.58)/.4)} Z`,fill:"#4A3B33"},g);
+  [85,155].forEach(cx=>{const ey=110;
+    if(h<35){el("rect",{x:cx-18,y:ey-14,width:36,height:28,rx:4,fill:"#9CC8F0",stroke:INK,"stroke-width":2.5},g);}
+    else{el("ellipse",{cx,cy:ey,rx:lerp(18,20,t),ry:lerp(16,10,t),fill:"#fff",stroke:INK,"stroke-width":2.5},g);
+      el("circle",{cx,cy:ey,r:lerp(9,7,t),fill:h>=75&&h<=92?"#5B5F6B":"#3B2A20"},g);
+      if(h>92||h<75)el("circle",{cx:cx+3,cy:ey-3,r:2.4,fill:"#fff"},g);
+      if(h>60)el("path",{d:`M${cx-20} ${ey-20} q20 -10 40 0`,fill:"none",stroke:"#4A3B33","stroke-width":3},g);}});
+  if(h>=40)el("path",{d:`M120 ${120} l-8 ${lerp(20,32,t)} h14`,fill:"none",stroke:INK,"stroke-width":2.5},g);
+  if(h<35)el("rect",{x:88,y:170,width:64,height:14,rx:3,fill:"#fff",stroke:INK,"stroke-width":2.5},g);
+  else if(h>=75&&h<=92)el("path",{d:"M78 172 Q120 196 162 172",fill:"#fff",stroke:INK,"stroke-width":2.5},g);
+  else el("path",{d:`M92 176 Q120 ${lerp(182,192,t)} 148 176`,fill:"none",stroke:h>60?"#B4554A":INK,"stroke-width":3},g);
+  if(h>92){el("circle",{cx:72,cy:150,r:10,fill:"#F2A99A",opacity:.5},g);el("circle",{cx:168,cy:150,r:10,fill:"#F2A99A",opacity:.5},g);}}
+function drawCurve(h){const s=$("curve");s.innerHTML="";const X=v=>30+v*2.8,Y=v=>120-v*90;
+  el("line",{x1:30,y1:Y(0),x2:310,y2:Y(0),stroke:LINE,"stroke-width":1.5},s);el("line",{x1:30,y1:20,x2:30,y2:220,stroke:INK,"stroke-width":1.5},s);
+  el("rect",{x:X(74),y:20,width:X(93)-X(74),height:200,fill:"#FBE6E1",opacity:.6},s);txt(s,X(83.5),36,"골짜기",{"text-anchor":"middle","font-size":15,fill:ALARM});
+  let d="";for(let x=0;x<=100;x++)d+=(x?"L":"M")+X(x)+" "+Y(aff(x));el("path",{d,fill:"none",stroke:INK,"stroke-width":2.5},s);
+  ratings.forEach(([x,f])=>el("circle",{cx:X(x),cy:Y(f*.8),r:5,fill:f>0?OK:f<0?ALARM:SOFT,opacity:.8},s));
+  el("circle",{cx:X(h),cy:Y(aff(h)),r:8,fill:BLUE,stroke:"#fff","stroke-width":2},s);
+  txt(s,34,16,"친근함 ↑",{"font-size":14,fill:SOFT});txt(s,250,232,"사람 닮음 →",{"text-anchor":"end","font-size":14,fill:SOFT});txt(s,36,Y(-1)+4,"섬뜩함",{"font-size":14,fill:ALARM});}
+function upd(){const h=+$("human").value;$("humanVal").textContent=h+"%";drawFace(h);drawCurve(h);
+  $("valleyHead").innerHTML=h<35?"누가 봐도 기계입니다. 귀엽거나 무덤덤합니다.":h<74?"사람을 닮아 가니 더 친근합니다.":h<=92?`거의 사람인데 눈빛과 웃음이 어딘가 어색합니다. <em>불쾌한 골짜기</em>입니다.`:"골짜기를 건넜습니다. 이제 사람과 거의 구별이 안 됩니다.";}
+$("human").addEventListener("input",upd);
+document.querySelectorAll("[data-f]").forEach(b=>b.addEventListener("click",()=>{ratings.push([+$("human").value,+b.dataset.f]);upd();}));
+upd();
+})();
+
+</script>
+</body>
+</html>

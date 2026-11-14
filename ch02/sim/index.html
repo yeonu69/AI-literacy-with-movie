@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>연결된 세계 체험실</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="2장 연결된 세계 · 연결된 세계 체험실. 코딩 없이 브라우저에서 해 보는 체험 시뮬레이터입니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 레이아웃: 연구 노트 한 권. 실험 세 개가 위에서 아래로 이어지고, 각 실험은 '조작판 + 펜 그림 + 읽는 법' 세 칸입니다. 종이 한 가지 모습만 씁니다. */
+:root{
+  --paper:#FBFAF6; --paper-2:#F3F1EA; --ink:#23262E; --ink-soft:#5B5F6B; --line:#C9C6BB;
+  --blue:#2F55A4; --violet:#5D6FB3; --lav:#ECEFF9;
+  --teal:#1E6E6E; --teal-bg:#E3F0F0; --amber:#9A5B12; --amber-bg:#FFF3DD;
+  --alarm:#C2412D; --alarm-bg:#FBE6E1; --ok:#2E7D4F;
+  --f-hand:"Gaegu","Nanum Pen Script","Gowun Dodum",cursive;
+  --f-body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --sketch:255px 12px 225px 14px / 14px 225px 12px 255px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.7;
+  background-image:linear-gradient(var(--paper-2) 1px,transparent 1px);background-size:100% 28px}
+.wrap{max-width:860px;margin:0 auto;padding-block:28px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--f-hand);font-weight:700;line-height:1.2;text-wrap:balance;margin:0}
+p{margin:0}
+.eyebrow{font-size:13px;letter-spacing:.06em;color:var(--violet);font-weight:700}
+header.top{display:flex;flex-direction:column;gap:14px}
+header.top h1{font-size:clamp(34px,6vw,50px);color:var(--blue)}
+header.top .lead{max-width:62ch;color:var(--ink-soft)}
+.film{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:16px 18px;display:flex;gap:16px;align-items:flex-start}
+.film svg{flex:0 0 56px}
+.film div{min-width:0}
+.film b{font-family:var(--f-hand);font-size:22px}
+.film p{font-size:15px;color:var(--ink-soft)}
+nav.jump{display:flex;flex-wrap:wrap;gap:8px}
+nav.jump a{font-family:var(--f-hand);font-size:19px;color:var(--ink);text-decoration:none;border:1.5px dashed var(--ink-soft);border-radius:999px;padding:2px 14px;background:var(--paper)}
+nav.jump a:hover,nav.jump a:focus-visible{border-style:solid;background:var(--lav)}
+section.exp{display:flex;flex-direction:column;gap:18px;scroll-margin-top:12px}
+.exp-head{display:flex;gap:14px;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:8px}
+.exp-head .no{font-family:var(--f-hand);font-size:44px;color:var(--violet);line-height:1}
+.exp-head h2{font-size:clamp(26px,4.4vw,34px)}
+.exp-head small{display:block;font-family:var(--f-body);font-size:13px;color:var(--ink-soft);font-weight:400}
+.q{font-size:17px;max-width:64ch}
+.panel{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:18px;display:flex;flex-direction:column;gap:16px}
+.controls{display:flex;flex-wrap:wrap;gap:18px 28px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ctl label,.ctl .lbl{font-size:14px;color:var(--ink-soft)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;cursor:pointer}
+.seg button,.btn{font-family:var(--f-hand);font-size:19px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);padding:2px 14px;border-radius:var(--sketch);line-height:1.4}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.btn:hover,.seg button:hover{background:var(--lav)}
+.seg button[aria-pressed="true"]:hover{background:var(--ink)}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn.primary:hover{background:#244585}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+input[type=range]{width:min(320px,100%);accent-color:var(--blue)}
+.val{font-family:var(--f-num);font-size:15px;color:var(--ink)}
+.check{display:flex;gap:8px;align-items:center;font-size:15px}
+.check input{width:18px;height:18px;accent-color:var(--blue)}
+.figure{overflow-x:auto}
+.figure svg{display:block;width:100%;height:auto;max-width:100%}
+.big{font-family:var(--f-hand);font-size:clamp(24px,4vw,30px);line-height:1.3}
+.big em{font-style:normal;color:var(--alarm);background:linear-gradient(transparent 60%,var(--alarm-bg) 60%)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{border-top:2px solid var(--ink);padding-top:6px}
+.stat span{display:block;font-size:13px;color:var(--ink-soft)}
+.stat b{font-family:var(--f-num);font-size:20px;font-variant-numeric:tabular-nums;font-weight:500}
+.stat.alarm b{color:var(--alarm)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;color:var(--ink-soft)}
+.legend i{display:inline-block;width:12px;height:12px;border:1.5px solid var(--ink);border-radius:50%;margin-right:6px;vertical-align:-1px}
+.box{border-radius:var(--sketch);padding:14px 16px;font-size:15px;max-width:none}
+.box b.t{display:block;font-family:var(--f-hand);font-size:20px;margin-bottom:2px}
+.box.teal{background:var(--teal-bg)} .box.teal b.t{color:var(--teal)}
+.box.amber{background:var(--amber-bg)} .box.amber b.t{color:var(--amber)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:640px){.two{grid-template-columns:minmax(0,1fr)}}
+table.cm{border-collapse:separate;border-spacing:6px;width:100%;font-size:14px}
+table.cm th{font-weight:400;color:var(--ink-soft);font-size:13px;text-align:center}
+table.cm td{border:2px solid var(--ink);border-radius:var(--sketch);text-align:center;padding:8px 4px;background:var(--paper)}
+table.cm td b{display:block;font-family:var(--f-num);font-size:24px;font-weight:500}
+table.cm td.tp{background:#E4F1E8} table.cm td.fp{background:var(--alarm-bg)} table.cm td.fn{background:var(--amber-bg)}
+.meter{display:flex;flex-direction:column;gap:10px}
+.meter .row{display:grid;grid-template-columns:5.5em minmax(0,1fr) 3.4em;gap:10px;align-items:center;font-size:14px}
+.meter .bar{height:14px;border:1.5px solid var(--ink);border-radius:8px;background:var(--paper);overflow:hidden}
+.meter .bar i{display:block;height:100%;background:var(--blue);transition:width .25s}
+.meter .num{font-family:var(--f-num);text-align:right;font-variant-numeric:tabular-nums}
+.missions{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.mission{border:2px dashed var(--ink-soft);border-radius:var(--sketch);padding:12px 14px;font-size:15px;background:var(--paper)}
+.mission.done{border-style:solid;border-color:var(--ok);background:#EEF6F0}
+.mission b{font-family:var(--f-hand);font-size:20px;display:block}
+.mission .st{font-size:13px;color:var(--ink-soft)}
+.mission.done .st{color:var(--ok);font-weight:700}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.log{font-family:var(--f-num);font-size:13px;line-height:1.6;max-height:180px;overflow:auto;background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--ink-soft)}
+.log div b{color:var(--ink);font-weight:500}
+.reveal{display:flex;flex-direction:column;gap:6px}
+footer{border-top:2px solid var(--ink);padding-top:14px;font-size:14px;color:var(--ink-soft);display:flex;flex-direction:column;gap:8px}
+footer a{color:var(--blue)}
+.links{display:flex;flex-wrap:wrap;gap:8px 18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+canvas.pix{display:block;image-rendering:pixelated;border:2px solid var(--ink);border-radius:6px;background:#fff;max-width:100%;height:auto;touch-action:none}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.row>*{min-width:0}
+.cap{font-size:13px;color:var(--ink-soft)}
+.mono{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+textarea,input[type=text]{font:inherit;font-size:16px;border:2px solid var(--ink);border-radius:8px;padding:8px 10px;background:var(--paper);color:var(--ink);width:100%}
+select{font:inherit;font-size:15px;border:2px solid var(--ink);border-radius:8px;padding:4px 8px;background:var(--paper);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--f-num);font-size:14px;border:1.5px solid var(--ink);border-radius:6px;padding:2px 8px;background:var(--paper)}
+.tag{display:inline-block;font-size:12px;border-radius:999px;padding:0 8px;border:1.5px solid currentColor}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="2.2"/></filter>
+    <symbol id="person" viewBox="0 0 20 30"><circle cx="10" cy="6.5" r="4.6"/><path d="M2.5 29 C2.5 18 5 13.5 10 13.5 S17.5 18 17.5 29 Z"/></symbol>
+  </defs>
+</svg>
+<div class="wrap">
+<header class="top">
+  <p class="eyebrow">영화관으로 간 AI 리터러시 · 2장 연결된 세계 · 체험실</p>
+  <h1>내 화면은 어떻게 나를 닮아 갈까요?</h1>
+  <p class="lead">코드는 없습니다. '좋아요'를 누르고 버튼을 눌러 보기만 하면 됩니다. 추천 알고리즘, 네트워크 효과, 패킷이 어떻게 움직이는지 직접 확인합니다.</p>
+  <div class="film">
+    <svg viewBox="0 0 56 56" aria-hidden="true" style="filter:url(#rough)"><rect x="4" y="10" width="48" height="36" rx="3" fill="none" stroke="#23262E" stroke-width="2.4"/><g fill="#23262E"><rect x="8" y="14" width="5" height="4"/><rect x="8" y="24" width="5" height="4"/><rect x="8" y="34" width="5" height="4"/><rect x="43" y="14" width="5" height="4"/><rect x="43" y="24" width="5" height="4"/><rect x="43" y="34" width="5" height="4"/></g><circle cx="28" cy="28" r="7" fill="none" stroke="#C2412D" stroke-width="2.4"/><circle cx="28" cy="28" r="2.2" fill="#C2412D"/></svg>
+    <div>
+      <b>「소셜 네트워크」(2010)</b>
+      <p>2003년 하버드 기숙사에서 한 학생이 밤새 만든 사이트가 몇 시간 만에 학교 전체로 퍼집니다. 친구가 쓰면 나도 쓰고, 사람이 늘수록 더 많은 사람이 모입니다. 그렇게 시작한 '더 페이스북'은 전 세계로 번져 나갑니다.</p>
+    </div>
+  </div>
+  <nav class="jump" aria-label="실험 바로 가기"><a href="#feed">실험 1 · 추천 피드와 필터 버블</a><a href="#network">실험 2 · 사람이 늘면 연결은 얼마나</a><a href="#packet">실험 3 · 글을 잘게 나눠 보내기</a></nav>
+</header>
+<section class="exp" id="feed">
+  <div class="exp-head"><span class="no">1</span><h2>추천 피드와 필터 버블<small>책 2장 3-7절 · 추천 알고리즘, 디지털 발자국</small></h2></div>
+  <p class="q">아래는 처음 가입한 사람의 피드입니다. 마음에 드는 글에 ♥를 눌러 보십시오. 추천 알고리즘은 내가 누른 것을 기억했다가 비슷한 글을 더 보여 줍니다. 열 번쯤 누르면 피드가 어떻게 바뀌어 있을까요?</p>
+  <div class="panel">
+    <div class="controls">
+      <label class="check"><input type="checkbox" id="explore">8칸 중 2칸은 일부러 새 주제 섞기 (탐색)</label>
+      <div class="btnrow"><button type="button" class="btn" id="soccer5">축구 글만 ♥ 다섯 번</button><button type="button" class="btn" id="feedReset">처음 가입한 상태로</button></div>
+    </div>
+    <div id="feedGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px"></div>
+    <div class="reveal"><span class="cap">지금 피드에 보이는 주제 비율</span><div class="figure"><svg id="mixBar" viewBox="0 0 640 44" aria-hidden="true"></svg></div></div>
+    <div class="stats" id="feedStats"></div>
+  </div>
+  <div class="box teal"><b class="t">읽는 법</b>내가 누른 ♥ 하나하나가 <b>디지털 발자국</b>입니다. 추천 알고리즘은 이 발자국을 보고 내가 좋아할 만한 글을 고릅니다. 편리하지만 누를수록 피드가 한 주제로 좁아집니다. 비슷한 것만 보게 되는 이 상태를 <b>필터 버블</b>이라고 합니다. '탐색'을 켜면 좁아지는 속도가 어떻게 달라지는지 비교해 보십시오.</div>
+</section>
+
+<section class="exp" id="network">
+  <div class="exp-head"><span class="no">2</span><h2>사람이 늘면 연결은 얼마나<small>책 2장 3-4절 · 네트워크 효과</small></h2></div>
+  <p class="q">전화기가 두 대면 연결은 하나뿐입니다. 사람 수를 늘려 보십시오. 사람은 하나씩 늘지만 서로 이어질 수 있는 연결은 훨씬 빨리 늘어납니다.</p>
+  <div class="panel">
+    <div class="ctl"><label for="nPeople">가입한 사람 <span class="val" id="nVal"></span></label><input type="range" id="nPeople" min="2" max="30" value="5"></div>
+    <div class="two">
+      <div class="figure" aria-hidden="true"><svg id="netSvg" viewBox="0 0 300 300"></svg></div>
+      <div class="figure" aria-hidden="true"><svg id="netPlot" viewBox="0 0 300 300"></svg></div>
+    </div>
+    <p class="big" id="netHead"></p>
+  </div>
+  <div class="box amber"><b class="t">생각해 볼 것</b>사람이 n명이면 연결은 n×(n−1)÷2개입니다. 10명이면 45개, 100명이면 4,950개입니다. 그래서 먼저 사람을 모은 서비스가 점점 더 유리해집니다. 친구가 다 있는 곳을 떠나기 어려운 이유이기도 합니다. 이 힘은 좋은 점과 나쁜 점이 무엇일까요?</div>
+</section>
+
+<section class="exp" id="packet">
+  <div class="exp-head"><span class="no">3</span><h2>글을 잘게 나눠 보내기<small>책 2장 3-1절 · 패킷 교환</small></h2></div>
+  <p class="q">서울에서 부산으로 메시지를 보냅니다. 인터넷은 메시지를 작은 조각(패킷)으로 잘라 번호를 붙이고, 조각마다 다른 길로 보냅니다. 도착 순서가 뒤죽박죽이어도 받는 쪽에서 번호대로 다시 맞춥니다.</p>
+  <div class="panel">
+    <div class="ctl" style="width:100%"><label for="msg">보낼 메시지</label><input type="text" id="msg" maxlength="40" value="오늘 저녁 일곱 시에 만나요!"></div>
+    <div class="controls">
+      <label class="check"><input type="checkbox" id="cut">대전 쪽 길이 끊겼습니다</label>
+      <label class="check"><input type="checkbox" id="lose">조각 하나가 가다가 사라집니다</label>
+      <button type="button" class="btn primary" id="send">보내기</button>
+    </div>
+    <div class="figure" aria-hidden="true"><svg id="map" viewBox="0 0 640 230"></svg></div>
+    <div class="two">
+      <div class="reveal"><span class="cap">도착한 순서</span><div class="chips" id="arrived"></div></div>
+      <div class="reveal"><span class="cap">번호대로 다시 맞춘 메시지</span><div class="log" id="assembled" style="font-size:16px;min-height:44px"></div></div>
+    </div>
+  </div>
+  <div class="box teal"><b class="t">읽는 법</b>길 하나가 끊겨도 조각들은 다른 길로 돌아갑니다. 조각이 사라지면 받는 쪽이 "3번이 안 왔어요"라고 다시 보내 달라고 합니다. 이 약속을 지키는 규칙이 TCP/IP입니다. 1969년 아르파넷이 이 방식으로 처음 연결되었습니다.</div>
+</section>
+
+<footer>
+  <p>이 체험실의 숫자는 원리를 보여 주려고 만든 가상의 값입니다.</p>
+  <div class="links"><a href="https://yeonu69.github.io/AI-literacy-with-movie/ch02/lab/">2장 코랩 실습 열기</a><a href="https://yeonu69.github.io/AI-literacy-with-movie/ch02/t1/">「소셜 네트워크」 예고편</a><a href="https://yeonu69.github.io/AI-literacy-with-movie/sim/">다른 장 체험실 보기</a></div>
+  <p>「영화관으로 간 AI 리터러시」 웹부록 · AInsight@Movie</p>
+</footer>
+</div>
+<script>
+const NS="http://www.w3.org/2000/svg";
+const INK="#23262E", ALARM="#C2412D", GREY="#E6E3DA", SOFT="#5B5F6B", BLUE="#2F55A4", TEAL="#1E6E6E", AMBER="#9A5B12", OK="#2E7D4F", PAPER="#FBFAF6", VIOLET="#5D6FB3", LINE="#C9C6BB";
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n).toLocaleString("ko-KR");
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function txt(parent,x,y,s,attrs){const t=el("text",Object.assign({x,y,"font-family":"Gaegu, cursive","font-size":18,fill:INK},attrs||{}),parent);t.textContent=s;return t;}
+function sk(parent){return el("g",{style:"filter:url(#rough)"},parent);}
+function rng(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+function seg(id,cb){const g=$(id);g.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{g.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));cb(b.dataset.v,b);}));}
+function stats(id,items){$(id).innerHTML=items.map(([l,v,c])=>`<div class="stat ${c||""}"><span>${l}</span><b>${v}</b></div>`).join("");}
+
+(function(){
+/* 실험 1: 추천 피드 */
+const T=[["축구","#2F55A4",["주말 리그 하이라이트","골키퍼의 선방 모음","이적 시장 소식","유소년 축구 이야기","전술 노트: 4-3-3"]],
+ ["요리","#C2412D",["10분 김치볶음밥","자취생 도시락","제철 귤로 만든 잼","라면 맛있게 끓이기","에어프라이어 감자"]],
+ ["여행","#1E6E6E",["제주 올레길 걷기","기차로 가는 강릉","혼자 떠난 교토","섬 캠핑 준비물","가을 단풍 명소"]],
+ ["과학","#5D6FB3",["블랙홀 사진 읽는 법","반도체는 왜 작아질까","고래의 노래","달 기지 계획","DNA 가위 이야기"]],
+ ["게임","#9A5B12",["퍼즐 게임 추천","e스포츠 결승 후기","보드게임 규칙 쉽게","레트로 게임기","게임 음악 모음"]],
+ ["음악","#2E7D4F",["새벽에 듣는 피아노","기타 코드 세 개로","인디 밴드 신곡","합창단 연습기","영화 음악 베스트"]]];
+let W,feed,likes,r=rng(7);
+function reset(){W=T.map(()=>1);likes=0;r=rng(7);refresh();}
+function pick(){const w=W.map(x=>x*x);const s=w.reduce((a,b)=>a+b);let u=r()*s;for(let i=0;i<w.length;i++){u-=w[i];if(u<=0)return i;}return w.length-1;}
+function refresh(){feed=[];for(let k=0;k<8;k++){let t=( $("explore").checked&&k>=6)?Math.floor(r()*T.length):pick();feed.push([t,T[t][2][Math.floor(r()*5)],$("explore").checked&&k>=6]);}draw();}
+function like(t){W[t]+=1;likes++;refresh();}
+function draw(){
+  $("feedGrid").innerHTML=feed.map(([t,title,ex],i)=>`<div style="background:#fff;border:2px solid #23262E;border-radius:var(--sketch);padding:10px 12px;display:flex;flex-direction:column;gap:6px">
+   <span class="tag" style="color:${T[t][1]}">${T[t][0]}${ex?" · 탐색":""}</span><span style="font-size:15px">${title}</span>
+   <button type="button" class="btn" data-t="${t}" style="align-self:flex-start;font-size:17px">♥ 좋아요</button></div>`).join("");
+  $("feedGrid").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>like(+b.dataset.t)));
+  const cnt=T.map((_,i)=>feed.filter(f=>f[0]===i).length);
+  const s=$("mixBar");s.innerHTML="";let x=0;
+  cnt.forEach((c,i)=>{if(!c)return;const w=620*c/8;el("rect",{x:10+x,y:6,width:w-2,height:30,rx:4,fill:T[i][1],opacity:.85},s);if(w>40)txt(s,10+x+w/2,27,T[i][0],{"text-anchor":"middle",fill:"#fff","font-size":16});x+=w;});
+  const top=W.indexOf(Math.max(...W)), share=Math.round(W[top]**2/W.reduce((a,b)=>a+b**2,0)*100);
+  stats("feedStats",[["누른 ♥",likes+"번"],["피드에 보이는 주제 수",cnt.filter(c=>c).length+"가지 / 6가지"],[`다음 글이 '${T[top][0]}'일 확률`,share+"%",share>60?"alarm":""]]);
+}
+$("explore").addEventListener("change",refresh);
+$("feedReset").addEventListener("click",reset);
+$("soccer5").addEventListener("click",()=>{for(let i=0;i<5;i++)W[0]+=1;likes+=5;refresh();});
+reset();
+
+/* 실험 2: 네트워크 효과 */
+function drawNet(){const n=+$("nPeople").value;$("nVal").textContent=n+"명";const links=n*(n-1)/2;
+  const s=$("netSvg");s.innerHTML="";const pts=[...Array(n)].map((_,i)=>[150+120*Math.cos(2*Math.PI*i/n-Math.PI/2),150+120*Math.sin(2*Math.PI*i/n-Math.PI/2)]);
+  const g=el("g",{},s);for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)el("line",{x1:pts[i][0],y1:pts[i][1],x2:pts[j][0],y2:pts[j][1],stroke:BLUE,"stroke-width":n>15?.5:1,opacity:.55},g);
+  const g2=sk(s);pts.forEach(([x,y])=>el("use",{href:"#person",x:x-7,y:y-10,width:14,height:21,fill:"#fff",stroke:INK,"stroke-width":1.4},g2));
+  const p=$("netPlot");p.innerHTML="";const X=v=>40+(v-2)/28*240, Y=v=>260-v/435*230;
+  el("line",{x1:40,y1:260,x2:285,y2:260,stroke:INK,"stroke-width":1.5},p);el("line",{x1:40,y1:260,x2:40,y2:20,stroke:INK,"stroke-width":1.5},p);
+  let d="";for(let k=2;k<=30;k++)d+=(k===2?"M":"L")+X(k)+" "+Y(k*(k-1)/2);el("path",{d,fill:"none",stroke:ALARM,"stroke-width":2.5},p);
+  let d2="";for(let k=2;k<=30;k++)d2+=(k===2?"M":"L")+X(k)+" "+Y(k);el("path",{d:d2,fill:"none",stroke:SOFT,"stroke-width":2,"stroke-dasharray":"5 4"},p);
+  el("circle",{cx:X(n),cy:Y(links),r:6,fill:ALARM},p);
+  txt(p,X(30),Y(435)-4,"연결 수",{"text-anchor":"end","font-size":15,fill:ALARM});txt(p,X(30),Y(30)-8,"사람 수",{"text-anchor":"end","font-size":15,fill:SOFT});
+  [[2,"2"],[16,"16"],[30,"30명"]].forEach(([v,l])=>txt(p,X(v),280,l,{"text-anchor":"middle","font-size":13,fill:SOFT,"font-family":"IBM Plex Mono, monospace"}));
+  [0,200,400].forEach(v=>txt(p,34,Y(v)+4,String(v),{"text-anchor":"end","font-size":12,fill:SOFT,"font-family":"IBM Plex Mono, monospace"}));
+  $("netHead").innerHTML=`${n}명이면 연결은 <em>${fmt(links)}개</em>입니다. 사람 한 명당 ${n-1}명과 이어질 수 있습니다.`;}
+$("nPeople").addEventListener("input",drawNet);drawNet();
+
+/* 실험 3: 패킷 */
+const NODES={서울:[60,110],대전:[300,50],광주:[300,180],부산:[580,110]};
+let anim=null;
+function drawMap(packets){const s=$("map");s.innerHTML="";const g=sk(s);
+  const cut=$("cut").checked;
+  [["서울","대전"],["대전","부산"],["서울","광주"],["광주","부산"]].forEach(([a,b])=>{const broken=cut&&(a==="대전"||b==="대전");
+    el("line",{x1:NODES[a][0],y1:NODES[a][1],x2:NODES[b][0],y2:NODES[b][1],stroke:broken?ALARM:INK,"stroke-width":broken?2:3,"stroke-dasharray":broken?"6 6":"none"},g);});
+  if(cut){txt(s,180,70,"✕ 끊김",{fill:ALARM,"font-size":18});}
+  Object.entries(NODES).forEach(([k,[x,y]])=>{el("circle",{cx:x,cy:y,r:k==="서울"||k==="부산"?26:18,fill:k==="서울"||k==="부산"?"#ECEFF9":"#fff",stroke:INK,"stroke-width":2},g);txt(s,x,y+(k==="광주"?42:-30),k,{"text-anchor":"middle","font-size":19,"font-weight":700});});
+  (packets||[]).forEach(p=>{if(p.pos==null)return;el("rect",{x:p.pos[0]-14,y:p.pos[1]-11,width:28,height:22,rx:4,fill:p.lost?"#FBE6E1":"#FFF3DD",stroke:INK,"stroke-width":1.5},s);txt(s,p.pos[0],p.pos[1]+6,String(p.no),{"text-anchor":"middle","font-size":15,"font-family":"IBM Plex Mono, monospace"});});
+}
+function lerp(a,b,t){return[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];}
+function send(){
+  if(anim)cancelAnimationFrame(anim);
+  const m=$("msg").value||"안녕하세요";const parts=[];for(let i=0;i<m.length;i+=3)parts.push(m.slice(i,i+3));
+  const rr=rng(Date.now()&0xffff);const cut=$("cut").checked;const loseIdx=$("lose").checked?Math.floor(rr()*parts.length):-1;
+  const P=parts.map((t,i)=>({no:i+1,t,via:cut?"광주":(rr()<.5?"대전":"광주"),start:i*0.25+rr()*0.3,speed:0.7+rr()*0.8,lost:i===loseIdx,done:false,resend:false}));
+  const arrived=[];let t0=null;$("arrived").innerHTML="";$("assembled").textContent="";
+  const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function frame(ts){if(t0==null)t0=ts;const T=(ts-t0)/1000*(reduce?20:1);
+    P.forEach(p=>{const u=(T-p.start)*p.speed/2;
+      if(u<0){p.pos=null;return;}
+      if(p.lost&&!p.resend&&u>0.45){p.pos=null;if(!p.gone){p.gone=true;}return;}
+      if(u>=1){p.pos=null;if(!p.done){p.done=true;arrived.push(p);}return;}
+      const mid=NODES[p.via];p.pos=u<.5?lerp(NODES.서울,mid,u*2):lerp(mid,NODES.부산,(u-.5)*2);});
+    // 잃어버린 조각 다시 요청
+    const lost=P.find(p=>p.lost&&!p.resend);const others=P.filter(p=>!p.lost);
+    if(lost&&others.every(p=>p.done)){lost.resend=true;lost.lost=false;lost.start=T;lost.speed=1.2;lost.via=cut?"광주":"광주";lost.resent=true;}
+    $("arrived").innerHTML=arrived.map(p=>`<span class="chip">${p.no}번${p.resent?" (다시 보냄)":""} · ${p.via} 경유</span>`).join("");
+    const got=P.filter(p=>p.done).sort((a,b)=>a.no-b.no);
+    const missing=P.filter(p=>!p.done).map(p=>p.no);
+    $("assembled").innerHTML=P.map(p=>p.done?p.t:"<span style='color:#C2412D'>□</span>").join("")+(P.some(p=>p.gone)&&!P.every(p=>p.done)&&others.every(p=>p.done)?`<br><span style="color:#C2412D">받는 쪽: "${missing.join(", ")}번 조각이 안 왔어요. 다시 보내 주세요."</span>`:"")+(P.every(p=>p.done)?"<br><b>완성했습니다.</b>":"");
+    drawMap(P);
+    if(!P.every(p=>p.done))anim=requestAnimationFrame(frame);}
+  anim=requestAnimationFrame(frame);
+}
+$("send").addEventListener("click",send);$("cut").addEventListener("change",()=>drawMap());
+drawMap();
+})();
+
+</script>
+</body>
+</html>

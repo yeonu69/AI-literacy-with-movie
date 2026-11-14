@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>배우는 기계 체험실</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="3장 기계는 어떻게 배우는가 · 배우는 기계 체험실. 코딩 없이 브라우저에서 해 보는 체험 시뮬레이터입니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 레이아웃: 연구 노트 한 권. 실험 세 개가 위에서 아래로 이어지고, 각 실험은 '조작판 + 펜 그림 + 읽는 법' 세 칸입니다. 종이 한 가지 모습만 씁니다. */
+:root{
+  --paper:#FBFAF6; --paper-2:#F3F1EA; --ink:#23262E; --ink-soft:#5B5F6B; --line:#C9C6BB;
+  --blue:#2F55A4; --violet:#5D6FB3; --lav:#ECEFF9;
+  --teal:#1E6E6E; --teal-bg:#E3F0F0; --amber:#9A5B12; --amber-bg:#FFF3DD;
+  --alarm:#C2412D; --alarm-bg:#FBE6E1; --ok:#2E7D4F;
+  --f-hand:"Gaegu","Nanum Pen Script","Gowun Dodum",cursive;
+  --f-body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --sketch:255px 12px 225px 14px / 14px 225px 12px 255px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.7;
+  background-image:linear-gradient(var(--paper-2) 1px,transparent 1px);background-size:100% 28px}
+.wrap{max-width:860px;margin:0 auto;padding-block:28px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--f-hand);font-weight:700;line-height:1.2;text-wrap:balance;margin:0}
+p{margin:0}
+.eyebrow{font-size:13px;letter-spacing:.06em;color:var(--violet);font-weight:700}
+header.top{display:flex;flex-direction:column;gap:14px}
+header.top h1{font-size:clamp(34px,6vw,50px);color:var(--blue)}
+header.top .lead{max-width:62ch;color:var(--ink-soft)}
+.film{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:16px 18px;display:flex;gap:16px;align-items:flex-start}
+.film svg{flex:0 0 56px}
+.film div{min-width:0}
+.film b{font-family:var(--f-hand);font-size:22px}
+.film p{font-size:15px;color:var(--ink-soft)}
+nav.jump{display:flex;flex-wrap:wrap;gap:8px}
+nav.jump a{font-family:var(--f-hand);font-size:19px;color:var(--ink);text-decoration:none;border:1.5px dashed var(--ink-soft);border-radius:999px;padding:2px 14px;background:var(--paper)}
+nav.jump a:hover,nav.jump a:focus-visible{border-style:solid;background:var(--lav)}
+section.exp{display:flex;flex-direction:column;gap:18px;scroll-margin-top:12px}
+.exp-head{display:flex;gap:14px;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:8px}
+.exp-head .no{font-family:var(--f-hand);font-size:44px;color:var(--violet);line-height:1}
+.exp-head h2{font-size:clamp(26px,4.4vw,34px)}
+.exp-head small{display:block;font-family:var(--f-body);font-size:13px;color:var(--ink-soft);font-weight:400}
+.q{font-size:17px;max-width:64ch}
+.panel{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:18px;display:flex;flex-direction:column;gap:16px}
+.controls{display:flex;flex-wrap:wrap;gap:18px 28px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ctl label,.ctl .lbl{font-size:14px;color:var(--ink-soft)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;cursor:pointer}
+.seg button,.btn{font-family:var(--f-hand);font-size:19px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);padding:2px 14px;border-radius:var(--sketch);line-height:1.4}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.btn:hover,.seg button:hover{background:var(--lav)}
+.seg button[aria-pressed="true"]:hover{background:var(--ink)}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn.primary:hover{background:#244585}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+input[type=range]{width:min(320px,100%);accent-color:var(--blue)}
+.val{font-family:var(--f-num);font-size:15px;color:var(--ink)}
+.check{display:flex;gap:8px;align-items:center;font-size:15px}
+.check input{width:18px;height:18px;accent-color:var(--blue)}
+.figure{overflow-x:auto}
+.figure svg{display:block;width:100%;height:auto;max-width:100%}
+.big{font-family:var(--f-hand);font-size:clamp(24px,4vw,30px);line-height:1.3}
+.big em{font-style:normal;color:var(--alarm);background:linear-gradient(transparent 60%,var(--alarm-bg) 60%)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{border-top:2px solid var(--ink);padding-top:6px}
+.stat span{display:block;font-size:13px;color:var(--ink-soft)}
+.stat b{font-family:var(--f-num);font-size:20px;font-variant-numeric:tabular-nums;font-weight:500}
+.stat.alarm b{color:var(--alarm)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;color:var(--ink-soft)}
+.legend i{display:inline-block;width:12px;height:12px;border:1.5px solid var(--ink);border-radius:50%;margin-right:6px;vertical-align:-1px}
+.box{border-radius:var(--sketch);padding:14px 16px;font-size:15px;max-width:none}
+.box b.t{display:block;font-family:var(--f-hand);font-size:20px;margin-bottom:2px}
+.box.teal{background:var(--teal-bg)} .box.teal b.t{color:var(--teal)}
+.box.amber{background:var(--amber-bg)} .box.amber b.t{color:var(--amber)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:640px){.two{grid-template-columns:minmax(0,1fr)}}
+table.cm{border-collapse:separate;border-spacing:6px;width:100%;font-size:14px}
+table.cm th{font-weight:400;color:var(--ink-soft);font-size:13px;text-align:center}
+table.cm td{border:2px solid var(--ink);border-radius:var(--sketch);text-align:center;padding:8px 4px;background:var(--paper)}
+table.cm td b{display:block;font-family:var(--f-num);font-size:24px;font-weight:500}
+table.cm td.tp{background:#E4F1E8} table.cm td.fp{background:var(--alarm-bg)} table.cm td.fn{background:var(--amber-bg)}
+.meter{display:flex;flex-direction:column;gap:10px}
+.meter .row{display:grid;grid-template-columns:5.5em minmax(0,1fr) 3.4em;gap:10px;align-items:center;font-size:14px}
+.meter .bar{height:14px;border:1.5px solid var(--ink);border-radius:8px;background:var(--paper);overflow:hidden}
+.meter .bar i{display:block;height:100%;background:var(--blue);transition:width .25s}
+.meter .num{font-family:var(--f-num);text-align:right;font-variant-numeric:tabular-nums}
+.missions{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.mission{border:2px dashed var(--ink-soft);border-radius:var(--sketch);padding:12px 14px;font-size:15px;background:var(--paper)}
+.mission.done{border-style:solid;border-color:var(--ok);background:#EEF6F0}
+.mission b{font-family:var(--f-hand);font-size:20px;display:block}
+.mission .st{font-size:13px;color:var(--ink-soft)}
+.mission.done .st{color:var(--ok);font-weight:700}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.log{font-family:var(--f-num);font-size:13px;line-height:1.6;max-height:180px;overflow:auto;background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--ink-soft)}
+.log div b{color:var(--ink);font-weight:500}
+.reveal{display:flex;flex-direction:column;gap:6px}
+footer{border-top:2px solid var(--ink);padding-top:14px;font-size:14px;color:var(--ink-soft);display:flex;flex-direction:column;gap:8px}
+footer a{color:var(--blue)}
+.links{display:flex;flex-wrap:wrap;gap:8px 18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+canvas.pix{display:block;image-rendering:pixelated;border:2px solid var(--ink);border-radius:6px;background:#fff;max-width:100%;height:auto;touch-action:none}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.row>*{min-width:0}
+.cap{font-size:13px;color:var(--ink-soft)}
+.mono{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+textarea,input[type=text]{font:inherit;font-size:16px;border:2px solid var(--ink);border-radius:8px;padding:8px 10px;background:var(--paper);color:var(--ink);width:100%}
+select{font:inherit;font-size:15px;border:2px solid var(--ink);border-radius:8px;padding:4px 8px;background:var(--paper);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--f-num);font-size:14px;border:1.5px solid var(--ink);border-radius:6px;padding:2px 8px;background:var(--paper)}
+.tag{display:inline-block;font-size:12px;border-radius:999px;padding:0 8px;border:1.5px solid currentColor}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="2.2"/></filter>
+    <symbol id="person" viewBox="0 0 20 30"><circle cx="10" cy="6.5" r="4.6"/><path d="M2.5 29 C2.5 18 5 13.5 10 13.5 S17.5 18 17.5 29 Z"/></symbol>
+  </defs>
+</svg>
+<div class="wrap">
+<header class="top">
+  <p class="eyebrow">영화관으로 간 AI 리터러시 · 3장 기계는 어떻게 배우는가 · 체험실</p>
+  <h1>기계가 배우는 모습을 지켜보세요</h1>
+  <p class="lead">코드는 없습니다. 점을 찍고, 그림을 그리고, 버튼을 눌러 보기만 하면 됩니다. 인공 뉴런이 틀린 만큼 고치며 배우는 과정과, 기계의 눈이 선을 찾는 방법을 봅니다.</p>
+  <div class="film">
+    <svg viewBox="0 0 56 56" aria-hidden="true" style="filter:url(#rough)"><rect x="4" y="10" width="48" height="36" rx="3" fill="none" stroke="#23262E" stroke-width="2.4"/><g fill="#23262E"><rect x="8" y="14" width="5" height="4"/><rect x="8" y="24" width="5" height="4"/><rect x="8" y="34" width="5" height="4"/><rect x="43" y="14" width="5" height="4"/><rect x="43" y="24" width="5" height="4"/><rect x="43" y="34" width="5" height="4"/></g><circle cx="28" cy="28" r="7" fill="none" stroke="#C2412D" stroke-width="2.4"/><circle cx="28" cy="28" r="2.2" fill="#C2412D"/></svg>
+    <div>
+      <b>「터미네이터 2: 심판의 날」(1991)</b>
+      <p>미래에서 온 로봇 T-800은 소년 존 코너를 지키라는 명령을 받습니다. 존은 로봇에게 말투와 웃는 법을 가르치고, 로봇은 자기 머릿속 칩이 '배우는 컴퓨터'라고 말합니다. 정말 기계는 어떻게 배울까요?</p>
+    </div>
+  </div>
+  <nav class="jump" aria-label="실험 바로 가기"><a href="#perceptron">실험 1 · 틀린 만큼 고치는 뉴런</a><a href="#filters">실험 2 · 기계의 눈은 선부터 봅니다</a></nav>
+</header>
+<section class="exp" id="perceptron">
+  <div class="exp-head"><span class="no">1</span><h2>틀린 만큼 고치는 뉴런<small>책 3장 3-3, 3-4절 · 학습, 인공 뉴런(퍼셉트론)</small></h2></div>
+  <p class="q">인공 뉴런 하나에게 고양이와 강아지를 가려내라고 해 보겠습니다. 단서는 두 가지, 귀가 얼마나 뾰족한지와 주둥이가 얼마나 긴지입니다. 처음에 뉴런은 아무렇게나 선을 긋습니다. '배우기'를 누를 때마다 틀린 문제만큼 선을 고칩니다.</p>
+  <div class="panel">
+    <div class="controls">
+      <div class="btnrow"><button type="button" class="btn" id="one">한 문제 풀고 고치기</button><button type="button" class="btn primary" id="epoch">모든 문제 한 바퀴 배우기</button><button type="button" class="btn" id="pReset">처음으로</button></div>
+      <div class="ctl"><label for="lr">한 번에 고치는 크기 (학습률) <span class="val" id="lrVal"></span></label><input type="range" id="lr" min="0.02" max="1" step="0.02" value="0.2"></div>
+    </div>
+    <div class="controls"><div class="ctl"><span class="lbl" id="addLbl">그림을 눌러 점 더하기</span><div class="seg" role="group" aria-labelledby="addLbl" id="addSeg"><button type="button" data-v="1" aria-pressed="true">고양이 ●</button><button type="button" data-v="-1">강아지 ▲</button></div></div></div>
+    <div class="two">
+      <div class="figure"><svg id="plot" viewBox="0 0 320 320" style="cursor:crosshair" aria-label="고양이와 강아지 점 그림"></svg></div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="figure" aria-hidden="true"><svg id="neuron" viewBox="0 0 300 170"></svg></div>
+        <p class="big" id="pHead"></p>
+        <div class="stats" id="pStats"></div>
+      </div>
+    </div>
+  </div>
+  <div class="box teal"><b class="t">읽는 법</b>뉴런은 단서마다 <b>가중치</b>(얼마나 중요하게 볼지)를 곱해 더하고, 합이 0보다 크면 '고양이'라고 답합니다. 틀리면 정답 쪽으로 가중치를 조금 움직입니다. 학습이란 이렇게 틀린 만큼 고치는 일입니다. 학습률을 아주 크게 하면 선이 이리저리 크게 흔들립니다. 그림을 눌러 헷갈리는 점을 더해 보십시오. 한 줄로 가를 수 없게 되면 뉴런 하나로는 끝내 다 맞히지 못합니다. 그래서 뉴런을 여러 층으로 쌓습니다.</div>
+</section>
+
+<section class="exp" id="filters">
+  <div class="exp-head"><span class="no">2</span><h2>기계의 눈은 선부터 봅니다<small>책 3장 3-6, 3-7절 · 시각피질, 합성곱 신경망(CNN)</small></h2></div>
+  <p class="q">고양이의 뇌에서 어떤 세포는 세로선에만, 어떤 세포는 가로선에만 반응합니다(허블과 비젤, 1959). CNN의 첫 층도 똑같이 일합니다. 왼쪽 칸에 그림을 그리면 네 개의 작은 필터가 그림 위를 훑으며 자기 방향의 선을 찾습니다.</p>
+  <div class="panel">
+    <div class="controls"><div class="ctl"><span class="lbl" id="preLbl">예시 그림</span><div class="seg" role="group" aria-labelledby="preLbl" id="preSeg">
+      <button type="button" data-v="v">세로선</button><button type="button" data-v="h">가로선</button><button type="button" data-v="seven" aria-pressed="true">숫자 7</button><button type="button" data-v="x">X</button><button type="button" data-v="box">네모</button><button type="button" data-v="clear">지우기</button></div></div></div>
+    <div class="row" style="align-items:flex-start">
+      <div class="reveal"><span class="cap">눌러서 그리기 (9×9)</span><canvas class="pix" id="draw" width="180" height="180" style="width:180px"></canvas></div>
+      <div id="maps" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;flex:1 1 300px"></div>
+    </div>
+    <p class="big" id="fHead"></p>
+  </div>
+  <div class="box amber"><b class="t">생각해 볼 것</b>필터 하나는 3×3 칸짜리 작은 무늬입니다. 이 무늬와 닮은 곳에서 진하게 반응합니다. 실제 CNN은 이런 필터 수백 개를 사람이 정하지 않고 데이터에서 스스로 배웁니다. 첫 층은 선을, 다음 층은 선이 모인 모서리와 곡선을, 더 깊은 층은 눈이나 귀 같은 부분을 찾습니다.</div>
+</section>
+
+<footer>
+  <p>이 체험실의 숫자는 원리를 보여 주려고 만든 가상의 값입니다.</p>
+  <div class="links"><a href="https://yeonu69.github.io/AI-literacy-with-movie/ch03/lab/">3장 코랩 실습 열기</a><a href="https://yeonu69.github.io/AI-literacy-with-movie/ch03/t1/">「터미네이터 2: 심판의 날」 예고편</a><a href="https://yeonu69.github.io/AI-literacy-with-movie/sim/">다른 장 체험실 보기</a></div>
+  <p>「영화관으로 간 AI 리터러시」 웹부록 · AInsight@Movie</p>
+</footer>
+</div>
+<script>
+const NS="http://www.w3.org/2000/svg";
+const INK="#23262E", ALARM="#C2412D", GREY="#E6E3DA", SOFT="#5B5F6B", BLUE="#2F55A4", TEAL="#1E6E6E", AMBER="#9A5B12", OK="#2E7D4F", PAPER="#FBFAF6", VIOLET="#5D6FB3", LINE="#C9C6BB";
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n).toLocaleString("ko-KR");
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function txt(parent,x,y,s,attrs){const t=el("text",Object.assign({x,y,"font-family":"Gaegu, cursive","font-size":18,fill:INK},attrs||{}),parent);t.textContent=s;return t;}
+function sk(parent){return el("g",{style:"filter:url(#rough)"},parent);}
+function rng(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+function seg(id,cb){const g=$(id);g.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{g.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));cb(b.dataset.v,b);}));}
+function stats(id,items){$(id).innerHTML=items.map(([l,v,c])=>`<div class="stat ${c||""}"><span>${l}</span><b>${v}</b></div>`).join("");}
+
+(function(){
+/* 실험 1 */
+const BASE=[[7.5,3,1],[8.2,2.2,1],[6.8,2.8,1],[8.8,3.6,1],[7.2,1.8,1],[6.2,2.2,1],[8,4.2,1],
+            [3,6.5,-1],[2.2,7.8,-1],[4,7.2,-1],[3.5,5.4,-1],[1.8,6,-1],[4.6,8.4,-1],[2.8,8.8,-1]];
+let pts,w,b,epoch,cursor,last,addCls=1;
+function reset(){pts=BASE.map(p=>p.slice());w=[-0.3,0.6];b=0.5;epoch=0;cursor=0;last=null;draw();}
+const S=v=>20+v*28, Sy=v=>300-v*28, inv=x=>(x-20)/28, invy=y=>(300-y)/28;
+function f(p){return w[0]*(p[0]-5)+w[1]*(p[1]-5)+b;}
+function learnOne(){const p=pts[cursor%pts.length];cursor++;const y=f(p)>0?1:-1;const lr=+$("lr").value;
+  last={p,ok:y===p[2]};if(y!==p[2]){w[0]+=lr*p[2]*(p[0]-5)/5;w[1]+=lr*p[2]*(p[1]-5)/5;b+=lr*p[2];}
+  if(cursor%pts.length===0)epoch++;}
+function draw(){
+  $("lrVal").textContent=(+$("lr").value).toFixed(2);
+  const s=$("plot");s.innerHTML="";
+  // 배경 영역 칠하기
+  for(let i=0;i<20;i++)for(let j=0;j<20;j++){const x=i*0.5+0.25,y=j*0.5+0.25;el("rect",{x:S(x-.25),y:Sy(y+.25),width:14,height:14,fill:f([x,y])>0?"#F7E3DE":"#E1E8F5"},s);}
+  el("line",{x1:20,y1:300,x2:300,y2:300,stroke:INK,"stroke-width":1.5},s);el("line",{x1:20,y1:300,x2:20,y2:20,stroke:INK,"stroke-width":1.5},s);
+  txt(s,300,316,"귀가 뾰족함 →",{"text-anchor":"end","font-size":14,fill:SOFT});txt(s,24,16,"↑ 주둥이 길이",{"font-size":14,fill:SOFT});
+  // 결정 경계
+  if(Math.abs(w[1])>1e-6){const yAt=x=>5+(-b-w[0]*(x-5))/w[1];el("line",{x1:S(0),y1:Sy(yAt(0)),x2:S(10),y2:Sy(yAt(10)),stroke:INK,"stroke-width":2.5,"stroke-dasharray":"8 5"},s);}
+  const g=sk(s);let wrong=0;
+  pts.forEach(p=>{const ok=(f(p)>0?1:-1)===p[2];if(!ok)wrong++;const x=S(p[0]),y=Sy(p[1]);
+    if(p[2]===1)el("circle",{cx:x,cy:y,r:7,fill:ALARM,stroke:ok?INK:"#F2B233","stroke-width":ok?1.5:4},g);
+    else el("path",{d:`M${x} ${y-8} L${x+8} ${y+6} L${x-8} ${y+6} Z`,fill:BLUE,stroke:ok?INK:"#F2B233","stroke-width":ok?1.5:4},g);});
+  if(last){el("circle",{cx:S(last.p[0]),cy:Sy(last.p[1]),r:14,fill:"none",stroke:last.ok?OK:"#F2B233","stroke-width":2.5},s);}
+  txt(s,296,40,"고양이 쪽",{"text-anchor":"end","font-size":15,fill:ALARM});txt(s,40,290,"강아지 쪽",{"font-size":15,fill:BLUE});
+  // 뉴런 그림
+  const n=$("neuron");n.innerHTML="";const ng=sk(n);
+  el("circle",{cx:40,cy:45,r:22,fill:"#fff",stroke:INK,"stroke-width":2},ng);el("circle",{cx:40,cy:125,r:22,fill:"#fff",stroke:INK,"stroke-width":2},ng);
+  txt(n,40,50,"귀",{"text-anchor":"middle","font-size":16});txt(n,40,130,"주둥이",{"text-anchor":"middle","font-size":13});
+  [[45,w[0]],[125,w[1]]].forEach(([y,v])=>{el("line",{x1:62,y1:y,x2:168,y2:85,stroke:v>0?ALARM:BLUE,"stroke-width":1+Math.min(8,Math.abs(v)*4)},n);
+    txt(n,112,(y+85)/2-8,(v>0?"+":"")+v.toFixed(2),{"text-anchor":"middle","font-size":13,"font-family":"IBM Plex Mono, monospace",fill:v>0?ALARM:BLUE});});
+  el("circle",{cx:190,cy:85,r:26,fill:"#ECEFF9",stroke:INK,"stroke-width":2},ng);txt(n,190,91,"Σ",{"text-anchor":"middle","font-size":22});
+  el("line",{x1:216,y1:85,x2:250,y2:85,stroke:INK,"stroke-width":2},n);txt(n,275,80,"고양이?",{"text-anchor":"middle","font-size":15});txt(n,275,100,"강아지?",{"text-anchor":"middle","font-size":15});
+  txt(n,190,140,"치우침 "+b.toFixed(2),{"text-anchor":"middle","font-size":13,"font-family":"IBM Plex Mono, monospace",fill:SOFT});
+  $("pHead").innerHTML=wrong?`${pts.length}문제 중 <em>${wrong}개</em>를 틀립니다.`:`${pts.length}문제를 모두 맞힙니다.`;
+  stats("pStats",[["배운 바퀴 수",epoch+"바퀴"],["방금 푼 문제",last?(last.ok?"맞힘, 그대로 둠":"틀림, 고침"):"—",last&&!last.ok?"alarm":""]]);
+}
+$("one").addEventListener("click",()=>{learnOne();draw();});
+$("epoch").addEventListener("click",()=>{const n=pts.length-(cursor%pts.length);for(let i=0;i<n;i++)learnOne();draw();});
+$("pReset").addEventListener("click",reset);$("lr").addEventListener("input",draw);
+seg("addSeg",v=>addCls=+v);
+$("plot").addEventListener("click",e=>{const s=$("plot"),r=s.getBoundingClientRect();const x=(e.clientX-r.left)/r.width*320,y=(e.clientY-r.top)/r.height*320;
+  const px=inv(x),py=invy(y);if(px<0||px>10||py<0||py>10)return;pts.push([px,py,addCls]);last=null;draw();});
+reset();
+
+/* 실험 2 */
+const N=9;let img;
+const K={"가로선":[[-1,-1,-1],[2,2,2],[-1,-1,-1]],"세로선":[[-1,2,-1],[-1,2,-1],[-1,2,-1]],"↘ 대각선":[[2,-1,-1],[-1,2,-1],[-1,-1,2]],"↗ 대각선":[[-1,-1,2],[-1,2,-1],[2,-1,-1]]};
+function preset(v){img=[...Array(N)].map(()=>Array(N).fill(0));const set=(r,c)=>{if(r>=0&&r<N&&c>=0&&c<N)img[r][c]=1;};
+  if(v==="v")for(let r=1;r<8;r++)set(r,4);
+  if(v==="h")for(let c=1;c<8;c++)set(4,c);
+  if(v==="seven"){for(let c=1;c<8;c++)set(1,c);for(let k=0;k<6;k++)set(2+k,7-k);}
+  if(v==="x")for(let k=1;k<8;k++){set(k,k);set(k,8-k);}
+  if(v==="box"){for(let k=1;k<8;k++){set(1,k);set(7,k);set(k,1);set(k,7);}}
+  render();}
+function conv(k){const o=[];for(let r=0;r<N-2;r++){o.push([]);for(let c=0;c<N-2;c++){let s=0;for(let i=0;i<3;i++)for(let j=0;j<3;j++)s+=k[i][j]*img[r+i][c+j];o[r].push(Math.max(0,s));}}return o;}
+function render(){const cv=$("draw"),x=cv.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,180,180);
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){if(img[r][c]){x.fillStyle=INK;x.fillRect(c*20+1,r*20+1,18,18);}x.strokeStyle="#E6E3DA";x.strokeRect(c*20,r*20,20,20);}
+  const res=Object.entries(K).map(([name,k])=>{const o=conv(k);const tot=o.flat().reduce((a,b)=>a+b,0);return{name,k,o,tot,max:Math.max(...o.flat())};});
+  $("maps").innerHTML="";
+  res.forEach(R=>{const d=document.createElement("div");d.style.cssText="display:flex;flex-direction:column;gap:4px";
+    const sv=document.createElementNS(NS,"svg");sv.setAttribute("viewBox","0 0 120 150");sv.style.width="100%";
+    // 필터 무늬
+    for(let i=0;i<3;i++)for(let j=0;j<3;j++)el("rect",{x:4+j*10,y:4+i*10,width:9,height:9,fill:R.k[i][j]>0?INK:"#fff",stroke:LINE,"stroke-width":.6},sv);
+    txt(sv,40,22,R.name,{"font-size":15});
+    for(let r=0;r<7;r++)for(let c=0;c<7;c++){const v=R.o[r][c]/6;el("rect",{x:4+c*16,y:40+r*15,width:15,height:14,fill:v>0?`rgba(194,65,45,${Math.min(1,v)})`:"#F3F1EA"},sv);}
+    d.appendChild(sv);const cap=document.createElement("span");cap.className="cap";cap.textContent=`반응 합계 ${R.tot}`;d.appendChild(cap);$("maps").appendChild(d);});
+  const best=res.slice().sort((a,b)=>b.tot-a.tot);
+  $("fHead").innerHTML=best[0].tot===0?"아직 그림이 없습니다. 왼쪽 칸을 눌러 그려 보십시오.":`가장 많이 찾은 것은 <em>${best[0].name}</em>입니다.`+(best[1].tot>best[0].tot*0.6?` 다음은 ${best[1].name}입니다.`:"");
+}
+let painting=false,paintVal=1;
+function cell(e){const cv=$("draw"),r=cv.getBoundingClientRect();return[Math.floor((e.clientY-r.top)/r.height*N),Math.floor((e.clientX-r.left)/r.width*N)];}
+$("draw").addEventListener("pointerdown",e=>{const[r,c]=cell(e);if(r<0||r>=N||c<0||c>=N)return;painting=true;paintVal=img[r][c]?0:1;img[r][c]=paintVal;render();$("draw").setPointerCapture(e.pointerId);});
+$("draw").addEventListener("pointermove",e=>{if(!painting)return;const[r,c]=cell(e);if(r>=0&&r<N&&c>=0&&c<N&&img[r][c]!==paintVal){img[r][c]=paintVal;render();}});
+$("draw").addEventListener("pointerup",()=>painting=false);
+seg("preSeg",preset);preset("seven");
+})();
+
+</script>
+</body>
+</html>

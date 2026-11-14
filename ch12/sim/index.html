@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>생명 설계 체험실</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="12장 AI가 읽고 쓰는 생명 · 생명 설계 체험실. 코딩 없이 브라우저에서 해 보는 체험 시뮬레이터입니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 레이아웃: 연구 노트 한 권. 실험 세 개가 위에서 아래로 이어지고, 각 실험은 '조작판 + 펜 그림 + 읽는 법' 세 칸입니다. 종이 한 가지 모습만 씁니다. */
+:root{
+  --paper:#FBFAF6; --paper-2:#F3F1EA; --ink:#23262E; --ink-soft:#5B5F6B; --line:#C9C6BB;
+  --blue:#2F55A4; --violet:#5D6FB3; --lav:#ECEFF9;
+  --teal:#1E6E6E; --teal-bg:#E3F0F0; --amber:#9A5B12; --amber-bg:#FFF3DD;
+  --alarm:#C2412D; --alarm-bg:#FBE6E1; --ok:#2E7D4F;
+  --f-hand:"Gaegu","Nanum Pen Script","Gowun Dodum",cursive;
+  --f-body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --sketch:255px 12px 225px 14px / 14px 225px 12px 255px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.7;
+  background-image:linear-gradient(var(--paper-2) 1px,transparent 1px);background-size:100% 28px}
+.wrap{max-width:860px;margin:0 auto;padding-block:28px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--f-hand);font-weight:700;line-height:1.2;text-wrap:balance;margin:0}
+p{margin:0}
+.eyebrow{font-size:13px;letter-spacing:.06em;color:var(--violet);font-weight:700}
+header.top{display:flex;flex-direction:column;gap:14px}
+header.top h1{font-size:clamp(34px,6vw,50px);color:var(--blue)}
+header.top .lead{max-width:62ch;color:var(--ink-soft)}
+.film{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:16px 18px;display:flex;gap:16px;align-items:flex-start}
+.film svg{flex:0 0 56px}
+.film div{min-width:0}
+.film b{font-family:var(--f-hand);font-size:22px}
+.film p{font-size:15px;color:var(--ink-soft)}
+nav.jump{display:flex;flex-wrap:wrap;gap:8px}
+nav.jump a{font-family:var(--f-hand);font-size:19px;color:var(--ink);text-decoration:none;border:1.5px dashed var(--ink-soft);border-radius:999px;padding:2px 14px;background:var(--paper)}
+nav.jump a:hover,nav.jump a:focus-visible{border-style:solid;background:var(--lav)}
+section.exp{display:flex;flex-direction:column;gap:18px;scroll-margin-top:12px}
+.exp-head{display:flex;gap:14px;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:8px}
+.exp-head .no{font-family:var(--f-hand);font-size:44px;color:var(--violet);line-height:1}
+.exp-head h2{font-size:clamp(26px,4.4vw,34px)}
+.exp-head small{display:block;font-family:var(--f-body);font-size:13px;color:var(--ink-soft);font-weight:400}
+.q{font-size:17px;max-width:64ch}
+.panel{background:#fff;border:2px solid var(--ink);border-radius:var(--sketch);padding:18px;display:flex;flex-direction:column;gap:16px}
+.controls{display:flex;flex-wrap:wrap;gap:18px 28px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ctl label,.ctl .lbl{font-size:14px;color:var(--ink-soft)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;cursor:pointer}
+.seg button,.btn{font-family:var(--f-hand);font-size:19px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);padding:2px 14px;border-radius:var(--sketch);line-height:1.4}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.btn:hover,.seg button:hover{background:var(--lav)}
+.seg button[aria-pressed="true"]:hover{background:var(--ink)}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn.primary:hover{background:#244585}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+input[type=range]{width:min(320px,100%);accent-color:var(--blue)}
+.val{font-family:var(--f-num);font-size:15px;color:var(--ink)}
+.check{display:flex;gap:8px;align-items:center;font-size:15px}
+.check input{width:18px;height:18px;accent-color:var(--blue)}
+.figure{overflow-x:auto}
+.figure svg{display:block;width:100%;height:auto;max-width:100%}
+.big{font-family:var(--f-hand);font-size:clamp(24px,4vw,30px);line-height:1.3}
+.big em{font-style:normal;color:var(--alarm);background:linear-gradient(transparent 60%,var(--alarm-bg) 60%)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{border-top:2px solid var(--ink);padding-top:6px}
+.stat span{display:block;font-size:13px;color:var(--ink-soft)}
+.stat b{font-family:var(--f-num);font-size:20px;font-variant-numeric:tabular-nums;font-weight:500}
+.stat.alarm b{color:var(--alarm)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;color:var(--ink-soft)}
+.legend i{display:inline-block;width:12px;height:12px;border:1.5px solid var(--ink);border-radius:50%;margin-right:6px;vertical-align:-1px}
+.box{border-radius:var(--sketch);padding:14px 16px;font-size:15px;max-width:none}
+.box b.t{display:block;font-family:var(--f-hand);font-size:20px;margin-bottom:2px}
+.box.teal{background:var(--teal-bg)} .box.teal b.t{color:var(--teal)}
+.box.amber{background:var(--amber-bg)} .box.amber b.t{color:var(--amber)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:640px){.two{grid-template-columns:minmax(0,1fr)}}
+table.cm{border-collapse:separate;border-spacing:6px;width:100%;font-size:14px}
+table.cm th{font-weight:400;color:var(--ink-soft);font-size:13px;text-align:center}
+table.cm td{border:2px solid var(--ink);border-radius:var(--sketch);text-align:center;padding:8px 4px;background:var(--paper)}
+table.cm td b{display:block;font-family:var(--f-num);font-size:24px;font-weight:500}
+table.cm td.tp{background:#E4F1E8} table.cm td.fp{background:var(--alarm-bg)} table.cm td.fn{background:var(--amber-bg)}
+.meter{display:flex;flex-direction:column;gap:10px}
+.meter .row{display:grid;grid-template-columns:5.5em minmax(0,1fr) 3.4em;gap:10px;align-items:center;font-size:14px}
+.meter .bar{height:14px;border:1.5px solid var(--ink);border-radius:8px;background:var(--paper);overflow:hidden}
+.meter .bar i{display:block;height:100%;background:var(--blue);transition:width .25s}
+.meter .num{font-family:var(--f-num);text-align:right;font-variant-numeric:tabular-nums}
+.missions{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.mission{border:2px dashed var(--ink-soft);border-radius:var(--sketch);padding:12px 14px;font-size:15px;background:var(--paper)}
+.mission.done{border-style:solid;border-color:var(--ok);background:#EEF6F0}
+.mission b{font-family:var(--f-hand);font-size:20px;display:block}
+.mission .st{font-size:13px;color:var(--ink-soft)}
+.mission.done .st{color:var(--ok);font-weight:700}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.log{font-family:var(--f-num);font-size:13px;line-height:1.6;max-height:180px;overflow:auto;background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--ink-soft)}
+.log div b{color:var(--ink);font-weight:500}
+.reveal{display:flex;flex-direction:column;gap:6px}
+footer{border-top:2px solid var(--ink);padding-top:14px;font-size:14px;color:var(--ink-soft);display:flex;flex-direction:column;gap:8px}
+footer a{color:var(--blue)}
+.links{display:flex;flex-wrap:wrap;gap:8px 18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+canvas.pix{display:block;image-rendering:pixelated;border:2px solid var(--ink);border-radius:6px;background:#fff;max-width:100%;height:auto;touch-action:none}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.row>*{min-width:0}
+.cap{font-size:13px;color:var(--ink-soft)}
+.mono{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+textarea,input[type=text]{font:inherit;font-size:16px;border:2px solid var(--ink);border-radius:8px;padding:8px 10px;background:var(--paper);color:var(--ink);width:100%}
+select{font:inherit;font-size:15px;border:2px solid var(--ink);border-radius:8px;padding:4px 8px;background:var(--paper);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--f-num);font-size:14px;border:1.5px solid var(--ink);border-radius:6px;padding:2px 8px;background:var(--paper)}
+.tag{display:inline-block;font-size:12px;border-radius:999px;padding:0 8px;border:1.5px solid currentColor}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="2.2"/></filter>
+    <symbol id="person" viewBox="0 0 20 30"><circle cx="10" cy="6.5" r="4.6"/><path d="M2.5 29 C2.5 18 5 13.5 10 13.5 S17.5 18 17.5 29 Z"/></symbol>
+  </defs>
+</svg>
+<div class="wrap">
+<header class="top">
+  <p class="eyebrow">영화관으로 간 AI 리터러시 · 12장 AI가 읽고 쓰는 생명 · 체험실</p>
+  <h1>DNA를 읽고, 고치고, 내다보기</h1>
+  <p class="lead">코드는 없습니다. 글자를 고르고 막대를 밀어 보기만 하면 됩니다. 크리스퍼 가위가 DNA에서 자리를 찾는 방법과, 감염병이 퍼지는 곡선을 직접 움직여 봅니다.</p>
+  <div class="film">
+    <svg viewBox="0 0 56 56" aria-hidden="true" style="filter:url(#rough)"><rect x="4" y="10" width="48" height="36" rx="3" fill="none" stroke="#23262E" stroke-width="2.4"/><g fill="#23262E"><rect x="8" y="14" width="5" height="4"/><rect x="8" y="24" width="5" height="4"/><rect x="8" y="34" width="5" height="4"/><rect x="43" y="14" width="5" height="4"/><rect x="43" y="24" width="5" height="4"/><rect x="43" y="34" width="5" height="4"/></g><circle cx="28" cy="28" r="7" fill="none" stroke="#C2412D" stroke-width="2.4"/><circle cx="28" cy="28" r="2.2" fill="#C2412D"/></svg>
+    <div>
+      <b>「가타카」(1997)</b>
+      <p>아기가 태어나자마자 발뒤꿈치에서 뽑은 피 한 방울로 예상 수명과 병의 확률이 정해지는 미래입니다. '부적격자' 빈센트는 그 숫자를 넘어 우주 비행사를 꿈꿉니다. 유전체를 읽는 기술은 지금 어디까지 왔을까요?</p>
+    </div>
+  </div>
+  <nav class="jump" aria-label="실험 바로 가기"><a href="#crispr">실험 1 · 크리스퍼 가위로 자리 찾기</a><a href="#sir">실험 2 · 감염병 곡선 눌러 보기</a></nav>
+</header>
+<section class="exp" id="crispr">
+  <div class="exp-head"><span class="no">1</span><h2>크리스퍼 가위로 자리 찾기<small>책 12장 3-1, 3-3절 · DNA, 크리스퍼, 표적 밖 절단</small></h2></div>
+  <p class="q">크리스퍼 가위는 20글자짜리 '안내 RNA'와 똑같은 곳을 DNA에서 찾아 자릅니다. 단, 바로 뒤에 'NGG'(아무 글자 + G + G) 표지가 있어야 자를 수 있습니다. 고치고 싶은 유전자(파란 칸) 위에서 안내 글자 20개를 어디에 둘지 골라 보십시오. 다른 곳을 잘못 자르지는 않는지도 확인합니다. 이 유전자에서 자를 수 있는 자리는 네 곳뿐입니다.</p>
+  <div class="panel">
+    <div class="ctl"><label for="gpos">안내 RNA 위치 <span class="val" id="gposVal"></span></label><input type="range" id="gpos" min="0" max="40" value="2" style="width:100%"></div>
+    <div class="reveal"><span class="cap">고칠 유전자 (60글자)</span><div class="figure"><svg id="gene" viewBox="0 0 640 90" style="min-width:560px"></svg></div></div>
+    <div class="reveal"><span class="cap">세포 속 DNA 전체에서 찾은 자리 (600글자, 한 줄에 60글자)</span><div class="figure"><svg id="genome" viewBox="0 0 640 260" style="min-width:560px"></svg></div></div>
+    <div class="legend"><span><i style="background:#2F55A4"></i>고칠 유전자</span><span><i style="background:#2E7D4F"></i>정확히 맞는 자리</span><span><i style="background:#F2B233"></i>1~3글자만 다른 비슷한 자리 (잘못 자를 위험)</span></div>
+    <p class="big" id="crHead"></p>
+  </div>
+  <div class="box teal"><b class="t">읽는 법</b>DNA는 A, T, G, C 네 글자로 쓰인 설명서입니다. 사람의 DNA는 약 30억 글자라서 20글자와 비슷한 곳이 우연히 다른 데도 있을 수 있습니다. 엉뚱한 곳을 자르는 것을 <b>표적 밖 절단</b>이라고 합니다. 그래서 연구자들은 AI와 컴퓨터로 수십억 글자를 훑어 가장 안전한 안내 RNA를 고릅니다.</div>
+</section>
+
+<section class="exp" id="sir">
+  <div class="exp-head"><span class="no">2</span><h2>감염병 곡선 눌러 보기<small>책 12장 3-8절 · 감염병 예측</small></h2></div>
+  <p class="q">인구 1만 명인 도시에 감염자 10명이 들어왔습니다. 한 사람이 평균 몇 명에게 옮기는지(R0), 백신을 몇 %가 맞았는지, 30일째부터 만남을 얼마나 줄이는지 바꿔 보십시오. 「컨테이젼」(2011)이 보여 준 '곡선 누르기'를 직접 해 봅니다.</p>
+  <div class="panel">
+    <div class="controls">
+      <div class="ctl"><label for="r0">R0 (한 사람이 옮기는 수) <span class="val" id="r0Val"></span></label><input type="range" id="r0" min="0.8" max="6" step="0.1" value="2.5"></div>
+      <div class="ctl"><label for="vac">백신 접종률 <span class="val" id="vacVal"></span></label><input type="range" id="vac" min="0" max="90" value="0"></div>
+      <div class="ctl"><label for="dist">30일째부터 만남 줄이기 <span class="val" id="distVal"></span></label><input type="range" id="dist" min="0" max="70" value="0"></div>
+    </div>
+    <div class="figure" aria-hidden="true"><svg id="sirPlot" viewBox="0 0 640 260"></svg></div>
+    <div class="legend"><span><i style="background:#C2412D"></i>지금 아픈 사람</span><span><i style="background:#5D6FB3"></i>회복한 사람</span><span><i style="background:#fff;border-style:dashed"></i>병원이 한 번에 돌볼 수 있는 수 (5%)</span></div>
+    <div class="stats" id="sirStats"></div>
+  </div>
+  <div class="box amber"><b class="t">생각해 볼 것</b>백신 접종률이 '1 − 1/R0'을 넘으면 감염이 퍼지지 못합니다. 이를 <b>집단 면역</b>이라고 합니다. R0가 3이면 약 67%입니다. 실제 감염병 예측 AI는 이런 기본 모형에 이동 자료, 검색어, 하수 검사 같은 데이터를 더해 다음 유행을 내다봅니다. 이 모형은 원리를 보여 주는 단순한 계산입니다.</div>
+</section>
+
+<footer>
+  <p>이 체험실의 숫자는 원리를 보여 주려고 만든 가상의 값입니다.</p>
+  <div class="links"><a href="https://yeonu69.github.io/AI-literacy-with-movie/ch12/lab/">12장 코랩 실습 열기</a><a href="https://yeonu69.github.io/AI-literacy-with-movie/ch12/t1/">「가타카」 예고편</a><a href="https://yeonu69.github.io/AI-literacy-with-movie/sim/">다른 장 체험실 보기</a></div>
+  <p>「영화관으로 간 AI 리터러시」 웹부록 · AInsight@Movie</p>
+</footer>
+</div>
+<script>
+const NS="http://www.w3.org/2000/svg";
+const INK="#23262E", ALARM="#C2412D", GREY="#E6E3DA", SOFT="#5B5F6B", BLUE="#2F55A4", TEAL="#1E6E6E", AMBER="#9A5B12", OK="#2E7D4F", PAPER="#FBFAF6", VIOLET="#5D6FB3", LINE="#C9C6BB";
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n).toLocaleString("ko-KR");
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function txt(parent,x,y,s,attrs){const t=el("text",Object.assign({x,y,"font-family":"Gaegu, cursive","font-size":18,fill:INK},attrs||{}),parent);t.textContent=s;return t;}
+function sk(parent){return el("g",{style:"filter:url(#rough)"},parent);}
+function rng(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+function seg(id,cb){const g=$(id);g.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{g.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));cb(b.dataset.v,b);}));}
+function stats(id,items){$(id).innerHTML=items.map(([l,v,c])=>`<div class="stat ${c||""}"><span>${l}</span><b>${v}</b></div>`).join("");}
+
+(function(){
+/* 실험 1 */
+const r=rng(12),B="ACGT";const rand=n=>Array.from({length:n},()=>B[Math.floor(r()*4)]).join("");
+const GENE="ATGGCTTACGGAGTCCTGAAGCTGGCACTGTTCCGGTACAGGATCGACTGGTTAGCCTGA";
+let genome=rand(600).split("");const GS=180;GENE.split("").forEach((c,i)=>genome[GS+i]=c);
+// 일부 안내 위치와 1~2글자 다른 비슷한 자리를 DNA 다른 곳에 심어 둡니다
+function plant(src,at,mut){const s=GENE.slice(src,src+23).split("");mut.forEach(i=>s[i]=s[i]==="A"?"C":"A");s.forEach((c,i)=>genome[at+i]=c);}
+plant(2,420,[5]);plant(19,60,[2,9,15]);
+genome=genome.join("");
+const comp={A:"T",T:"A",G:"C",C:"G"};
+function mm(a,b){let n=0;for(let i=0;i<a.length;i++)if(a[i]!==b[i])n++;return n;}
+function draw(){const p=+$("gpos").value;const guide=GENE.slice(p,p+20),pam=GENE.slice(p+20,p+23);const pamOK=pam.length===3&&pam[1]==="G"&&pam[2]==="G";
+  $("gposVal").textContent=`${p+1}~${p+20}번째 글자`;
+  const s=$("gene");s.innerHTML="";const cw=10.4;
+  for(let i=0;i<GENE.length;i++){const x=8+i*cw;const inG=i>=p&&i<p+20,inP=i>=p+20&&i<p+23;
+    if(inG)el("rect",{x,y:14,width:cw,height:26,fill:"#ECEFF9"},s);if(inP)el("rect",{x,y:14,width:cw,height:26,fill:pamOK?"#E4F1E8":"#FBE6E1"},s);
+    txt(s,x+cw/2,33,GENE[i],{"text-anchor":"middle","font-size":12,"font-family":"IBM Plex Mono, monospace",fill:BLUE});}
+  txt(s,8+p*cw,62,"안내 RNA 20글자",{"font-size":14,fill:VIOLET});txt(s,8+(p+20)*cw,80,pamOK?"NGG 있음 ✓":"NGG 없음 ✕",{"font-size":14,fill:pamOK?OK:ALARM});
+  if(pamOK){const cx=8+(p+17)*cw;el("path",{d:`M${cx} 6 l-5 -6 M${cx} 6 l5 -6 M${cx} 6 v40`,stroke:ALARM,"stroke-width":2,fill:"none"},s);}
+  // 전체 검색
+  const hits=[];if(pamOK)for(let i=0;i+23<=genome.length;i++){const w=genome.slice(i,i+20),pm=genome.slice(i+20,i+23);if(pm[1]!=="G"||pm[2]!=="G")continue;const m=mm(w,guide);if(m<=3)hits.push([i,m]);}
+  const g=$("genome");g.innerHTML="";const per=60,cw2=10.4;
+  for(let i=0;i<genome.length;i++){const row=Math.floor(i/per),col=i%per;const x=8+col*cw2,y=8+row*25;
+    let bg=null;if(i>=GS&&i<GS+GENE.length)bg="#E1E8F5";hits.forEach(([h,m])=>{if(i>=h&&i<h+20)bg=m===0?"#CFE8D7":"#FCE7B0";});
+    if(bg)el("rect",{x,y,width:cw2,height:20,fill:bg},g);
+    txt(g,x+cw2/2,y+15,genome[i],{"text-anchor":"middle","font-size":11,"font-family":"IBM Plex Mono, monospace",fill:i>=GS&&i<GS+GENE.length?BLUE:"#9A968C"});}
+  const exact=hits.filter(h=>h[1]===0).length,off=hits.filter(h=>h[1]>0);
+  $("crHead").innerHTML=!pamOK?`이 자리 바로 뒤에는 NGG 표지가 없습니다. 가위가 <em>자를 수 없습니다</em>. 위치를 옮겨 보십시오.`:
+    off.length?`정확한 자리 ${exact}곳 말고도 비슷한 자리가 <em>${off.length}곳</em> 있습니다(${off.map(h=>h[1]+"글자 다름").join(", ")}). 엉뚱한 곳을 자를 위험이 있습니다.`:`자를 수 있고, 비슷한 자리도 없습니다. <b>안전한 안내 RNA</b>입니다.`;}
+$("gpos").addEventListener("input",draw);draw();
+
+/* 실험 2: SIR */
+function sim(R0,vac,dist){const N=10000,g=1/7;let S=N*(1-vac)-10,I=10,R=N*vac;const out=[];for(let d=0;d<=240;d++){const b=R0*g*(d>=30?1-dist:1);out.push([S,I,R]);for(let k=0;k<10;k++){const inf=b*S*I/N*0.1,rec=g*I*0.1;S-=inf;I+=inf-rec;R+=rec;}}return out;}
+function drawSIR(){const R0=+$("r0").value,vac=+$("vac").value/100,dist=+$("dist").value/100;
+  $("r0Val").textContent=R0.toFixed(1)+"명";$("vacVal").textContent=Math.round(vac*100)+"%";$("distVal").textContent=Math.round(dist*100)+"%";
+  const o=sim(R0,vac,dist);const s=$("sirPlot");s.innerHTML="";const X=d=>40+d*2.4,Y=v=>230-v/10000*210;
+  el("line",{x1:40,y1:230,x2:620,y2:230,stroke:INK,"stroke-width":1.5},s);el("line",{x1:40,y1:20,x2:40,y2:230,stroke:INK,"stroke-width":1.5},s);
+  [0,60,120,180,240].forEach(d=>txt(s,X(d),248,d+"일",{"text-anchor":"middle","font-size":12,fill:SOFT,"font-family":"IBM Plex Mono, monospace"}));
+  [0,50,100].forEach(p=>txt(s,34,Y(p*100)+4,p+"%",{"text-anchor":"end","font-size":12,fill:SOFT,"font-family":"IBM Plex Mono, monospace"}));
+  el("line",{x1:X(30),y1:20,x2:X(30),y2:230,stroke:LINE,"stroke-dasharray":"3 4"},s);txt(s,X(30)+4,30,dist>0?"만남 줄이기 시작":"30일째",{"font-size":13,fill:SOFT});
+  el("line",{x1:40,y1:Y(500),x2:620,y2:Y(500),stroke:INK,"stroke-width":1.5,"stroke-dasharray":"6 4"},s);
+  let dR="",dI="";o.forEach(([S,I,R],d)=>{dR+=(d?"L":"M")+X(d)+" "+Y(R);dI+=(d?"L":"M")+X(d)+" "+Y(I);});
+  el("path",{d:dR,fill:"none",stroke:VIOLET,"stroke-width":2.5},s);el("path",{d:dI+` L${X(240)} 230 L40 230 Z`,fill:ALARM,opacity:.2},s);el("path",{d:dI,fill:"none",stroke:ALARM,"stroke-width":3},s);
+  let pk=0,pd=0,over=0;o.forEach(([S,I],d)=>{if(I>pk){pk=I;pd=d;}if(I>500)over++;});const total=o[o.length-1][2]-vac*10000;
+  stats("sirStats",[["가장 많이 아픈 날",pk<11?"—":pd+"일째"],["그날 아픈 사람",fmt(pk)+"명",pk>500?"alarm":""],["병원이 넘친 날",over+"일",over?"alarm":""],["모두 합쳐 걸린 사람",fmt(Math.max(0,total))+"명"],["집단 면역에 필요한 접종률",R0>1?Math.round((1-1/R0)*100)+"%":"필요 없음"]]);}
+["r0","vac","dist"].forEach(id=>$(id).addEventListener("input",drawSIR));drawSIR();
+})();
+
+</script>
+</body>
+</html>
